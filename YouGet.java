@@ -8,7 +8,7 @@ import java.io.File;
  */
 
 public class YouGet implements Downloader {
-	private static final String LOCATION = "E:/Èí¼þ/You-Get/";
+	private static final String LOCATION = "E:/è½¯ä»¶/You-Get/";
 	private static String executable;
 	private String outputPath;
 	private String outputFilename;
