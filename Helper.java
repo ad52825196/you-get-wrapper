@@ -28,7 +28,8 @@ public final class Helper {
 	 * array.
 	 * 
 	 * @param path
-	 * @return
+	 * @return an array of executable files in the given directory, or an array
+	 *         containing the given path only if it is an executable file
 	 */
 	public static final File[] getExecutable(String path) {
 		File file = new File(path);

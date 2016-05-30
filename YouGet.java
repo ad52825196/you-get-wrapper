@@ -1,5 +1,3 @@
-import java.io.File;
-
 /**
  * Each instance of this class represents a You-Get process.
  * 
@@ -8,21 +6,35 @@ import java.io.File;
  */
 
 public class YouGet implements Downloader {
-	private static final String LOCATION = "E:/软件/You-Get/";
 	private static String executable;
 	private String outputPath;
 	private String outputFilename;
 
-	public static final void setExecutable() throws NoExecutableFileFoundException {
+	public static final String getExecutable() {
+		return executable;
+	}
+
+	/**
+	 * If the given path is a directory, locate the first executable file in it.
+	 * If the given path is a valid executable file, set it to the executable.
+	 * 
+	 * @param path
+	 *            a path to a directory containing executable files or a path of
+	 *            an executable file
+	 * @throws NoExecutableFileFoundException
+	 *             if the given path does not contain any executable files and
+	 *             the given path is not a valid executable file either
+	 */
+	public static final void setExecutable(String path) throws NoExecutableFileFoundException {
 		try {
-			executable = Helper.getFirstExecutablePath(LOCATION);
+			executable = Helper.getFirstExecutablePath(path);
 		} catch (NoExecutableFileFoundException e) {
-			throw new NoExecutableFileFoundException("No YouGet program found in the given path: " + LOCATION, e);
+			throw new NoExecutableFileFoundException("No YouGet program found in the given path: " + path, e);
 		}
 	}
 
 	/**
-	 * Set the default output path to the root.
+	 * Set the default output path to the root directory.
 	 */
 	YouGet() {
 		this.outputPath = "/";
@@ -30,14 +42,6 @@ public class YouGet implements Downloader {
 
 	YouGet(String outputPath) {
 		this.outputPath = outputPath;
-	}
-
-	public static final String getLocation() {
-		return LOCATION;
-	}
-
-	public static final String getExecutable() {
-		return executable;
 	}
 
 	public void download() {

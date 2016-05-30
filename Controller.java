@@ -10,9 +10,14 @@
  */
 
 public class Controller {
+	private static final String LOCATION = "E:/软件/You-Get/";
 
 	public static void main(String[] args) {
-		// TODO
+		try {
+			YouGet.setExecutable(LOCATION);
+		} catch (NoExecutableFileFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
