@@ -21,7 +21,11 @@ public class YouGet implements Downloader {
 		}
 	}
 
+	/**
+	 * Set the default output path to the root.
+	 */
 	YouGet() {
+		this.outputPath = "/";
 	}
 
 	YouGet(String outputPath) {
