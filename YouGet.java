@@ -14,7 +14,11 @@ public class YouGet implements Downloader {
 	private String outputFilename;
 
 	public static final void setExecutable() throws NoExecutableFileFoundException {
-		executable = Helper.getFirstExecutablePath(LOCATION);
+		try {
+			executable = Helper.getFirstExecutablePath(LOCATION);
+		} catch (NoExecutableFileFoundException e) {
+			throw new NoExecutableFileFoundException("No YouGet program found in the given path: " + LOCATION, e);
+		}
 	}
 
 	YouGet() {
