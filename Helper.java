@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  */
 
 public final class Helper {
-	private static final ExecutableFileFilter EXECUTABLE_FILE_FILTER = new ExecutableFileFilter();
+	private static final ExecutableFileFilter executableFileFilter = new ExecutableFileFilter();
 
 	private static final class ExecutableFileFilter implements FileFilter {
 		private static final String EXECUTABLE_PATTERN = "[\\S]+(\\.(?i)(exe))$";
@@ -35,8 +35,8 @@ public final class Helper {
 		File file = new File(path);
 		File[] files = new File[1];
 		if (file.isDirectory()) {
-			return file.listFiles(EXECUTABLE_FILE_FILTER);
-		} else if (EXECUTABLE_FILE_FILTER.accept(file)) {
+			return file.listFiles(executableFileFilter);
+		} else if (executableFileFilter.accept(file)) {
 			files[0] = file;
 		}
 		return files;
