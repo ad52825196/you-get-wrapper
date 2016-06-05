@@ -15,7 +15,7 @@ public class Controller {
 	public static void main(String[] args) {
 		try {
 			YouGet.setExecutable(LOCATION);
-		} catch (NoExecutableFileFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
