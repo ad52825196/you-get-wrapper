@@ -2,6 +2,9 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.IOException;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
  * Each instance of this class represents a You-Get process.
  * 
@@ -14,6 +17,7 @@ public class YouGet {
 	private URL target;
 	private String outputPath = "/";
 	private String filename;
+	private JsonObject info;
 
 	public static final String getExecutable() {
 		return executable;
@@ -84,6 +88,9 @@ public class YouGet {
 		return filename;
 	}
 
+	private void setFilename() {
+		filename = info.get("title").getAsString();
+	}
 
 	private void info() throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		if (executable == null) {
@@ -95,6 +102,8 @@ public class YouGet {
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
 		}
+		info = new JsonParser().parse(pr.getOutput()).getAsJsonObject();
+		setFilename();
 	}
 
 	public void download() {
