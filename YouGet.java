@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
  *
  */
 
-public class YouGet implements Downloader {
+public class YouGet {
 	private static String executable;
 	private URL target;
 	private String outputPath = "/";
