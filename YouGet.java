@@ -1,5 +1,6 @@
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.io.IOException;
 
 /**
  * Each instance of this class represents a You-Get process.
@@ -37,20 +38,24 @@ public class YouGet {
 		}
 	}
 
-	YouGet(String target) throws MalformedURLException {
+	YouGet(String target) throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this.setTarget(target);
+		info();
 	}
 
-	YouGet(URL target) {
+	YouGet(URL target) throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this.setTarget(target);
+		info();
 	}
 
-	YouGet(String target, String outputPath) throws MalformedURLException {
+	YouGet(String target, String outputPath)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this(target);
 		this.setOutputPath(outputPath);
 	}
 
-	YouGet(URL target, String outputPath) {
+	YouGet(URL target, String outputPath)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this(target);
 		this.setOutputPath(outputPath);
 	}
@@ -66,17 +71,30 @@ public class YouGet {
 	public final void setTarget(URL target) {
 		this.target = target;
 	}
-	
+
 	public final String getOutputPath() {
 		return outputPath;
 	}
-	
+
 	public final void setOutputPath(String outputPath) {
 		this.outputPath = outputPath;
 	}
-	
+
 	public final String getFilename() {
 		return filename;
+	}
+
+
+	private void info() throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+		if (executable == null) {
+			throw new NoExecutableSetException();
+		}
+		Process p = new ProcessBuilder(executable, "--json", target.toString()).start();
+		ProcessReader pr = new ProcessReader(p, "GBK");
+		p.waitFor();
+		if (p.exitValue() != 0) {
+			throw new ProcessErrorException(pr.getError());
+		}
 	}
 
 	public void download() {
