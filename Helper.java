@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.regex.Pattern;
 
+import com.google.gson.JsonParser;
+
 /**
  * This class contains all helper methods for the program.
  * 
@@ -11,6 +13,7 @@ import java.util.regex.Pattern;
 
 public final class Helper {
 	private static final ExecutableFileFilter executableFileFilter = new ExecutableFileFilter();
+	public static final JsonParser jsonParser = new JsonParser();
 
 	private static final class ExecutableFileFilter implements FileFilter {
 		private static final String EXECUTABLE_PATTERN = "[\\S]+(\\.(?i)(exe))$";

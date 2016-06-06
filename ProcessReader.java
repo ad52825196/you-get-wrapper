@@ -17,13 +17,16 @@ public final class ProcessReader {
 	private ProcessReaderThread outputReader;
 	private ProcessReaderThread errorReader;
 
-	private static class ProcessReaderThread extends Thread {
+	private static final class ProcessReaderThread extends Thread {
 		private BufferedReader reader;
-		private StringBuilder builder;
+		private StringBuilder builder = new StringBuilder();
 
-		ProcessReaderThread(InputStream inputStream, String charset) throws UnsupportedEncodingException {
-			this.reader = new BufferedReader(new InputStreamReader(inputStream, charset));
-			this.builder = new StringBuilder();
+		ProcessReaderThread(InputStream is) {
+			this.reader = new BufferedReader(new InputStreamReader(is));
+		}
+
+		ProcessReaderThread(InputStream is, String charset) throws UnsupportedEncodingException {
+			this.reader = new BufferedReader(new InputStreamReader(is, charset));
 		}
 
 		public void run() {
@@ -44,9 +47,19 @@ public final class ProcessReader {
 
 	}
 
-	ProcessReader(Process p, String charset) throws UnsupportedEncodingException {
+	public ProcessReader(Process p) {
+		outputReader = new ProcessReaderThread(p.getInputStream());
+		errorReader = new ProcessReaderThread(p.getErrorStream());
+		startReader();
+	}
+
+	public ProcessReader(Process p, String charset) throws UnsupportedEncodingException {
 		outputReader = new ProcessReaderThread(p.getInputStream(), charset);
 		errorReader = new ProcessReaderThread(p.getErrorStream(), charset);
+		startReader();
+	}
+
+	private final void startReader() {
 		outputReader.start();
 		errorReader.start();
 	}

@@ -3,7 +3,6 @@ import java.net.MalformedURLException;
 import java.io.IOException;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 /**
  * Each instance of this class represents a You-Get process.
@@ -42,23 +41,25 @@ public class YouGet {
 		}
 	}
 
-	YouGet(String target) throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(String target)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this.setTarget(target);
 		info();
 	}
 
-	YouGet(URL target) throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(URL target)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this.setTarget(target);
 		info();
 	}
 
-	YouGet(String target, String outputPath)
+	public YouGet(String target, String outputPath)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this(target);
 		this.setOutputPath(outputPath);
 	}
 
-	YouGet(URL target, String outputPath)
+	public YouGet(URL target, String outputPath)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this(target);
 		this.setOutputPath(outputPath);
@@ -102,7 +103,7 @@ public class YouGet {
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
 		}
-		info = new JsonParser().parse(pr.getOutput()).getAsJsonObject();
+		info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
 		setFilename();
 	}
 
