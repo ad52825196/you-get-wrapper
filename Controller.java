@@ -1,5 +1,7 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -15,125 +17,91 @@ import java.io.IOException;
  * 
  */
 
-public class Controller implements Runnable {
+public class Controller {
 	private static final int NUMBER_OF_THREADS = 1;
-	private static final int MAX_ATTEMPTS = 3;
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK in Chinese version
 	private static final String CHARSET = "GBK";
 	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-	private static Thread[] threadPool = new Thread[NUMBER_OF_THREADS];
-	private static int count = 0;
-	private final int id = count;
-	private String outputPath = "/";
-	private List<String> targetList = new ArrayList<String>();
-	private YouGet yg;
-
-	// constructor
-	public Controller() {
-		count++;
-	}
-
-	public Controller(String outputPath) {
-		this();
-		setOutputPath(outputPath);
-	}
-
-	// getter for count
-	public final int getCount() {
-		return count;
-	}
-
-	// getter for id
-	public final int getId() {
-		return id;
-	}
-
-	// getter and setter for outputPath
-	public final String getOutputPath() {
-		return outputPath;
-	}
-
-	public final void setOutputPath(String outputPath) {
-		this.outputPath = outputPath;
-	}
-
-	// getter for targetList
-	public final List<String> getTargetList() {
-		return targetList;
-	}
-
-	private static synchronized void getInput(Controller c) throws IOException {
-		String line;
-		System.out.format("Please enter all target URLs for Process %d, one line for each:%n", c.getId());
-		while (!(line = input.readLine()).equals("")) {
-			c.getTargetList().add(line);
-		}
-		System.out.format("%d targets added to Process %d.%n%n", c.getTargetList().size(), c.getId());
-	}
+	private static Map<Thread, YouGet> threadPool = new HashMap<Thread, YouGet>(NUMBER_OF_THREADS);
+	private static List<String> targetList = new ArrayList<String>();
+	private static Map<String, String> targetMap = new HashMap<String, String>();
+	private static int targetsNumber = 0;
+	private static int activeThreadsNumber = 0;
 
 	/**
-	 * For each target, only MAX_ATTEMPTS number of attempts are allowed. If
-	 * failed too many times on a target, it will print out some error messages
-	 * and then skip to next target.
+	 * Get all target URLs from user.
+	 * 
+	 * An empty line indicates the end of input.
 	 * 
 	 * @throws IOException
 	 */
-	private void prepare() throws IOException {
-		String target;
-		int i = 0;
-		int failedAttempts = 0;
-		while (i < targetList.size()) {
-			target = targetList.get(i);
-			try {
-				yg = new YouGet(target, outputPath);
-				yg.download();
-			} catch (NoExecutableSetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				failedAttempts++;
-				if (failedAttempts >= MAX_ATTEMPTS) {
-					e.printStackTrace();
-				}
-			} catch (ProcessErrorException e) {
-				failedAttempts++;
-				if (failedAttempts >= MAX_ATTEMPTS) {
-					e.printStackTrace();
-				}
-			} finally {
-				if (failedAttempts <= 0 || failedAttempts >= MAX_ATTEMPTS) {
-					i++;
-					failedAttempts = 0;
-				}
+	private static void getInput() throws IOException {
+		String line;
+		System.out.println("Please enter all target URLs, one line for each:");
+		while (!(line = input.readLine()).equals("")) {
+			targetList.add(line);
+		}
+		targetsNumber = targetList.size();
+		System.out.format("%d targets added.%n", targetsNumber);
+	}
+
+	private static List<YouGet> clearThreadPool() throws InterruptedException {
+		List<YouGet> ProcessList = new ArrayList<YouGet>();
+		for (Thread t : threadPool.keySet()) {
+			t.join();
+			YouGet yg = threadPool.get(t);
+			threadPool.remove(t);
+			activeThreadsNumber--;
+			if (yg.getState()) {
+				ProcessList.add(yg);
 			}
+		}
+		return ProcessList;
+	}
+
+	private static void addTitleFromThreadPool(List<YouGet> ProcessList) {
+		for (YouGet yg : ProcessList) {
+			targetMap.put(yg.getTarget().toString(), yg.getFilename());
 		}
 	}
 
-	public void run() {
-		try {
-			getInput(this);
-			prepare();
-		} catch (IOException e) {
-			e.printStackTrace();
+	private static void getAllTitles()
+			throws InterruptedException, NoExecutableSetException, IOException, ProcessErrorException {
+		while (!targetList.isEmpty()) {
+			if (activeThreadsNumber < NUMBER_OF_THREADS) {
+				YouGet yg = new YouGet(targetList.get(0));
+				targetList.remove(0);
+				yg.setTask(YouGet.Task.INFO);
+				Thread t = new Thread(yg);
+				threadPool.put(t, yg);
+				t.start();
+				activeThreadsNumber++;
+			} else {
+				addTitleFromThreadPool(clearThreadPool());
+			}
 		}
+		addTitleFromThreadPool(clearThreadPool());
 	}
 
 	public static void main(String[] args) {
 		try {
 			YouGet.setExecutable(LOCATION);
 			YouGet.setCharset(CHARSET);
-			for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-				threadPool[i] = new Thread(new Controller());
-			}
-			for (Thread t : threadPool) {
-				t.start();
-			}
-			for (Thread t : threadPool) {
-				t.join();
+			getInput();
+			getAllTitles();
+			for (String target : targetMap.keySet()) {
+				System.out.println(target + ": " + targetMap.get(target));
 			}
 		} catch (NoExecutableFileFoundException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (NoExecutableSetException e) {
+			e.printStackTrace();
+		} catch (ProcessErrorException e) {
 			e.printStackTrace();
 		}
 	}
