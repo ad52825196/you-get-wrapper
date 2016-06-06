@@ -202,7 +202,7 @@ public class YouGet implements Runnable {
 		if (executable == null) {
 			throw new NoExecutableSetException();
 		}
-		Process p = new ProcessBuilder(executable, "--json", target.toString()).start();
+		Process p = new ProcessBuilder(executable, "--json", "\"" + target.toString() + "\"").start();
 		ProcessReader pr;
 		if (charset == null) {
 			pr = new ProcessReader(p);
