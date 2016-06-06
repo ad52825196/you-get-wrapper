@@ -18,6 +18,7 @@ public class YouGet {
 	private String filename;
 	private JsonObject info;
 
+	// getter and setter for executable
 	public static final String getExecutable() {
 		return executable;
 	}
@@ -41,6 +42,7 @@ public class YouGet {
 		}
 	}
 
+	// constructor
 	public YouGet(String target)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this.setTarget(target);
@@ -65,6 +67,7 @@ public class YouGet {
 		this.setOutputPath(outputPath);
 	}
 
+	// getter and setter for target
 	public final URL getTarget() {
 		return target;
 	}
@@ -77,6 +80,7 @@ public class YouGet {
 		this.target = target;
 	}
 
+	// getter and setter for outputPath
 	public final String getOutputPath() {
 		return outputPath;
 	}
@@ -85,6 +89,7 @@ public class YouGet {
 		this.outputPath = outputPath;
 	}
 
+	// getter and private setter for filename
 	public final String getFilename() {
 		return filename;
 	}
@@ -93,7 +98,23 @@ public class YouGet {
 		filename = info.get("title").getAsString();
 	}
 
-	private void info() throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	/**
+	 * This method is automatically triggered when the object is constructed.
+	 * 
+	 * It will run the YouGet program to get the info of the target URL and
+	 * store the parsed Json result in the field. At the end, it also sets up
+	 * the filename using the title field in the returned info.
+	 * 
+	 * @throws NoExecutableSetException
+	 *             if the executable file location is not set
+	 * @throws ProcessErrorException
+	 *             if YouGet failed to get info of the target
+	 * @throws IOException
+	 *             if failed to access or run the program file, or if the
+	 *             specified charset is invalid
+	 * @throws InterruptedException
+	 */
+	private void info() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
 		if (executable == null) {
 			throw new NoExecutableSetException();
 		}
