@@ -19,10 +19,12 @@ public class Controller implements Runnable {
 	private static final int NUMBER_OF_THREADS = 1;
 	private static final String LOCATION = "E:/软件/You-Get/";
 	private static final String CHARSET = "GBK";
+	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 	private static Thread[] threadPool = new Thread[NUMBER_OF_THREADS];
 	private static int count = 0;
 	private final int id = count;
 	private String outputPath = "/";
+	private List<String> targetList = new ArrayList<String>();
 
 	// constructor
 	public Controller() {
@@ -53,7 +55,26 @@ public class Controller implements Runnable {
 		this.outputPath = outputPath;
 	}
 
+	// getter for targetList
+	public final List<String> getTargetList() {
+		return targetList;
+	}
+
+	private static synchronized void getInput(Controller c) throws IOException {
+		String line;
+		System.out.format("Please enter all target URLs for Process %d, one line for each:%n", c.getId());
+		while (!(line = input.readLine()).equals("")) {
+			c.getTargetList().add(line);
+		}
+		System.out.format("%d targets added to Process %d.%n%n", c.getTargetList().size(), c.getId());
+	}
+
 	public void run() {
+		try {
+			getInput(this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {
