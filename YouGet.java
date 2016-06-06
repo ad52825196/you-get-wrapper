@@ -11,13 +11,20 @@ import com.google.gson.JsonObject;
  *
  */
 
-public class YouGet {
+public class YouGet implements Runnable {
+	private static final int MAX_ATTEMPTS = 3;
 	private static String executable;
 	private static String charset; // platform dependent
 	private URL target;
-	private String outputPath;
+	private String outputPath = "/";
 	private String filename;
 	private JsonObject info;
+	private Task task;
+	private boolean state;
+
+	public enum Task {
+		INFO, DOWNLOAD;
+	}
 
 	// getter and setter for executable
 	public static final String getExecutable() {
@@ -53,18 +60,26 @@ public class YouGet {
 	}
 
 	// constructor
-	public YouGet(String target, String outputPath)
+	public YouGet(String target)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		setTarget(target);
+	}
+
+	public YouGet(URL target)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+		setTarget(target);
+	}
+
+	public YouGet(String target, String outputPath)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+		this(target);
 		setOutputPath(outputPath);
-		info();
 	}
 
 	public YouGet(URL target, String outputPath)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		setTarget(target);
+		this(target);
 		setOutputPath(outputPath);
-		info();
 	}
 
 	// getter and setter for target
@@ -96,6 +111,59 @@ public class YouGet {
 
 	private void setFilename() {
 		filename = info.get("title").getAsString();
+	}
+
+	// getter and setter for forceWrite
+	public final boolean getForceWrite() {
+		return forceWrite;
+	}
+
+	public final void setForceWrite(boolean forceWrite) {
+		this.forceWrite = forceWrite;
+	}
+
+	// getter and setter for task
+	public final Task getTask() {
+		return task;
+	}
+
+	public final void setTask(Task task) {
+		this.task = task;
+	}
+
+	// getter for state
+	public final boolean getState() {
+		return state;
+	}
+
+	/**
+	 * Only MAX_ATTEMPTS number of running are allowed. If there is a major
+	 * exception, stop with no more attempts.
+	 */
+	public void run() {
+		state = false;
+		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
+			try {
+				switch (task) {
+				case INFO:
+					info();
+					break;
+				case DOWNLOAD:
+					download();
+					break;
+				}
+				state = true;
+				task = null;
+				break;
+			} catch (NoExecutableSetException | IOException e) {
+				e.printStackTrace();
+				break;
+			} catch (ProcessErrorException | InterruptedException e) {
+				if (failedAttempts == MAX_ATTEMPTS - 1) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	/**
