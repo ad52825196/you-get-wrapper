@@ -19,6 +19,7 @@ public class Controller implements Runnable {
 	private static final int NUMBER_OF_THREADS = 1;
 	private static final int MAX_ATTEMPTS = 3;
 	private static final String LOCATION = "E:/软件/You-Get/";
+	// Windows platform uses GBK in Chinese version
 	private static final String CHARSET = "GBK";
 	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 	private static Thread[] threadPool = new Thread[NUMBER_OF_THREADS];
