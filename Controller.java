@@ -17,6 +17,7 @@ import java.io.IOException;
 
 public class Controller implements Runnable {
 	private static final int NUMBER_OF_THREADS = 1;
+	private static final int MAX_ATTEMPTS = 3;
 	private static final String LOCATION = "E:/软件/You-Get/";
 	private static final String CHARSET = "GBK";
 	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -25,6 +26,7 @@ public class Controller implements Runnable {
 	private final int id = count;
 	private String outputPath = "/";
 	private List<String> targetList = new ArrayList<String>();
+	private YouGet yg;
 
 	// constructor
 	public Controller() {
@@ -69,9 +71,47 @@ public class Controller implements Runnable {
 		System.out.format("%d targets added to Process %d.%n%n", c.getTargetList().size(), c.getId());
 	}
 
+	/**
+	 * For each target, only MAX_ATTEMPTS number of attempts are allowed. If
+	 * failed too many times on a target, it will print out some error messages
+	 * and then skip to next target.
+	 * 
+	 * @throws IOException
+	 */
+	private void prepare() throws IOException {
+		String target;
+		int i = 0;
+		int failedAttempts = 0;
+		while (i < targetList.size()) {
+			target = targetList.get(i);
+			try {
+				yg = new YouGet(target, outputPath);
+				yg.download();
+			} catch (NoExecutableSetException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				failedAttempts++;
+				if (failedAttempts >= MAX_ATTEMPTS) {
+					e.printStackTrace();
+				}
+			} catch (ProcessErrorException e) {
+				failedAttempts++;
+				if (failedAttempts >= MAX_ATTEMPTS) {
+					e.printStackTrace();
+				}
+			} finally {
+				if (failedAttempts <= 0 || failedAttempts >= MAX_ATTEMPTS) {
+					i++;
+					failedAttempts = 0;
+				}
+			}
+		}
+	}
+
 	public void run() {
 		try {
 			getInput(this);
+			prepare();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
