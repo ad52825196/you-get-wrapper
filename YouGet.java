@@ -18,6 +18,7 @@ public class YouGet implements Runnable {
 	private URL target;
 	private String outputPath = "/";
 	private String filename;
+	private boolean forceWrite = false;
 	private JsonObject info;
 	private Task task;
 	private boolean state;
@@ -80,6 +81,18 @@ public class YouGet implements Runnable {
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
 		this(target);
 		setOutputPath(outputPath);
+	}
+
+	public YouGet(String target, String outputPath, boolean forceWrite)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+		this(target, outputPath);
+		setForceWrite(forceWrite);
+	}
+
+	public YouGet(URL target, String outputPath, boolean forceWrite)
+			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+		this(target, outputPath);
+		setForceWrite(forceWrite);
 	}
 
 	// getter and setter for target
@@ -204,11 +217,10 @@ public class YouGet implements Runnable {
 		setFilename();
 	}
 
-	public void download() {
-		download(false);
-	}
-
-	public void download(boolean forceWrite) {
+	private void download() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
+		if (info == null) {
+			info();
+		}
 		// TODO
 	}
 
