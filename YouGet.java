@@ -13,8 +13,9 @@ import com.google.gson.JsonObject;
 
 public class YouGet {
 	private static String executable;
+	private static String charset; // platform dependent
 	private URL target;
-	private String outputPath = "/";
+	private String outputPath;
 	private String filename;
 	private JsonObject info;
 
@@ -42,29 +43,28 @@ public class YouGet {
 		}
 	}
 
+	// getter and setter for charset
+	public static final String getCharset() {
+		return charset;
+	}
+
+	public static void setCharset(String charset) {
+		YouGet.charset = charset;
+	}
+
 	// constructor
-	public YouGet(String target)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		this.setTarget(target);
-		info();
-	}
-
-	public YouGet(URL target)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		this.setTarget(target);
-		info();
-	}
-
 	public YouGet(String target, String outputPath)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		this(target);
-		this.setOutputPath(outputPath);
+		setTarget(target);
+		setOutputPath(outputPath);
+		info();
 	}
 
 	public YouGet(URL target, String outputPath)
 			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		this(target);
-		this.setOutputPath(outputPath);
+		setTarget(target);
+		setOutputPath(outputPath);
+		info();
 	}
 
 	// getter and setter for target
@@ -102,8 +102,11 @@ public class YouGet {
 	 * This method is automatically triggered when the object is constructed.
 	 * 
 	 * It will run the YouGet program to get the info of the target URL and
-	 * store the parsed Json result in the field. At the end, it also sets up
-	 * the filename using the title field in the returned info.
+	 * store the parsed Json result in the object field. At the end, it also
+	 * sets up the filename using the title field in the returned info.
+	 * 
+	 * It needs a user specified charset to read the output of the process
+	 * correctly.
 	 * 
 	 * @throws NoExecutableSetException
 	 *             if the executable file location is not set
@@ -119,7 +122,12 @@ public class YouGet {
 			throw new NoExecutableSetException();
 		}
 		Process p = new ProcessBuilder(executable, "--json", target.toString()).start();
-		ProcessReader pr = new ProcessReader(p, "GBK");
+		ProcessReader pr;
+		if (charset == null) {
+			pr = new ProcessReader(p);
+		} else {
+			pr = new ProcessReader(p, charset);
+		}
 		p.waitFor();
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
