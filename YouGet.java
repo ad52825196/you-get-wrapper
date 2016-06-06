@@ -137,6 +137,10 @@ public class YouGet {
 	}
 
 	public void download() {
+		download(false);
+	}
+
+	public void download(boolean forceWrite) {
 		// TODO
 	}
 
