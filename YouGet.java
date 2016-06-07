@@ -18,9 +18,9 @@ public class YouGet implements Runnable {
 	private URL target;
 	private String outputPath = "/";
 	private String filename;
-	private boolean forceWrite = false;
 	private JsonObject info;
 	private Task task;
+	private boolean forceWrite = false;
 	private boolean state;
 
 	public enum Task {
@@ -145,9 +145,13 @@ public class YouGet implements Runnable {
 		this.task = task;
 	}
 
-	// getter for state
+	// getter and private setter for state
 	public final boolean getState() {
 		return state;
+	}
+
+	private final void setState(boolean state) {
+		this.state = state;
 	}
 
 	/**
@@ -155,7 +159,7 @@ public class YouGet implements Runnable {
 	 * exception, stop with no more attempts.
 	 */
 	public void run() {
-		state = false;
+		setState(false);
 		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
 			try {
 				switch (task) {
@@ -166,7 +170,7 @@ public class YouGet implements Runnable {
 					download();
 					break;
 				}
-				state = true;
+				setState(true);
 				task = null;
 				break;
 			} catch (NoExecutableSetException | IOException e) {
