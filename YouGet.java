@@ -17,13 +17,13 @@ public class YouGet implements Runnable {
 	private static String charset; // platform dependent
 	private URL target;
 	private String outputPath = "/";
-	private String filename;
+	private String title;
 	private JsonObject info;
 	private Task task;
 	private boolean forceWrite = false;
-	private boolean state;
+	private boolean success;
 
-	public enum Task {
+	public static enum Task {
 		INFO, DOWNLOAD;
 	}
 
@@ -112,14 +112,14 @@ public class YouGet implements Runnable {
 		this.outputPath = outputPath;
 	}
 
-	// getter and private setter for filename
-	public final String getFilename() {
-		return filename;
+	// getter and private setter for title
+	public final String getTitle() {
+		return title;
 	}
 
-	private void setFilename() throws NoInfoOfTargetException {
+	private void setTitle() throws NoInfoOfTargetException {
 		if (info != null) {
-			filename = info.get("title").getAsString();
+			title = info.get("title").getAsString();
 		} else {
 			throw new NoInfoOfTargetException();
 		}
@@ -143,17 +143,28 @@ public class YouGet implements Runnable {
 		this.task = task;
 	}
 
-	// getter for state
-	public final boolean getState() {
-		return state;
+	// getter for success
+	public final boolean isSuccess() {
+		return success;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return (o instanceof YouGet) && (target.toString().equals(((YouGet) o).getTarget().toString()));
+	}
+
+	@Override
+	public int hashCode() {
+		return target.toString().hashCode();
 	}
 
 	/**
 	 * Only MAX_ATTEMPTS number of running times are allowed. If there is a
 	 * major exception happened, stop with no more attempts.
 	 */
+	@Override
 	public void run() {
-		state = false;
+		success = false;
 		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
 			try {
 				switch (task) {
@@ -164,7 +175,7 @@ public class YouGet implements Runnable {
 					download();
 					break;
 				}
-				state = true;
+				success = true;
 				task = null;
 				break;
 			} catch (NoExecutableSetException | IOException e) {
@@ -199,6 +210,9 @@ public class YouGet implements Runnable {
 	 * @throws InterruptedException
 	 */
 	private void info() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
+		if (info != null) {
+			return;
+		}
 		if (executable == null) {
 			throw new NoExecutableSetException();
 		}
@@ -216,7 +230,7 @@ public class YouGet implements Runnable {
 			info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
 			try {
 				setTarget();
-				setFilename();
+				setTitle();
 			} catch (NoInfoOfTargetException e) {
 				e.printStackTrace();
 			}
@@ -224,9 +238,7 @@ public class YouGet implements Runnable {
 	}
 
 	private void download() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
-		if (info == null) {
-			info();
-		}
+		info();
 		// TODO
 	}
 

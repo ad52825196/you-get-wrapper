@@ -29,6 +29,7 @@ public final class ProcessReader {
 			this.reader = new BufferedReader(new InputStreamReader(is, charset));
 		}
 
+		@Override
 		public void run() {
 			String line;
 			try {

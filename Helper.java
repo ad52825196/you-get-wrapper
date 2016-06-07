@@ -19,6 +19,7 @@ public final class Helper {
 		private static final String EXECUTABLE_PATTERN = "[\\S]+(\\.(?i)(exe))$";
 		private static final Pattern P = Pattern.compile(EXECUTABLE_PATTERN);
 
+		@Override
 		public boolean accept(File pathname) {
 			return P.matcher(pathname.getName()).matches();
 		}
