@@ -33,15 +33,16 @@ public class YouGet implements Runnable {
 	}
 
 	/**
-	 * If the given path is a directory, locate the first executable file in it.
-	 * If the given path is a valid executable file, set it to the executable.
+	 * If the given path is a directory, locate the first executable program in
+	 * it. If the given path is a valid executable program, set it to the
+	 * executable.
 	 * 
 	 * @param path
-	 *            a path to a directory containing executable files or a path of
-	 *            an executable file
+	 *            a path to a directory containing executable programs or a path
+	 *            of an executable program
 	 * @throws NoExecutableFileFoundException
-	 *             if the given path does not contain any executable files and
-	 *             the given path is not a valid executable file either
+	 *             if the given path does not contain any executable programs
+	 *             and the given path is not a valid executable program either
 	 */
 	public static final void setExecutable(String path) throws NoExecutableFileFoundException {
 		try {
@@ -183,7 +184,7 @@ public class YouGet implements Runnable {
 	 * This method is automatically triggered when the object is constructed.
 	 * 
 	 * It will run the YouGet program to get the info of the target URL and
-	 * store the parsed Json result in the object field. At the end, it also
+	 * store the parsed Json result into the info field. At the end, it also
 	 * sets up the filename using the title field in the returned info.
 	 * 
 	 * It needs a user specified charset to read the output of the process
@@ -194,8 +195,8 @@ public class YouGet implements Runnable {
 	 * @throws ProcessErrorException
 	 *             if YouGet failed to get info of the target
 	 * @throws IOException
-	 *             if failed to access or run the program file, or if the
-	 *             specified charset is invalid
+	 *             if failed to access or run the program, or if the specified
+	 *             charset is invalid
 	 * @throws InterruptedException
 	 */
 	private void info() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {

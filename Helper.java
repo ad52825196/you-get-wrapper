@@ -25,14 +25,14 @@ public final class Helper {
 	}
 
 	/**
-	 * Return an array of executable files in the given directory using the
-	 * EXECUTABLE_FILE_FILTER. If the given path is already an executable file,
-	 * return an array containing this file only, otherwise return an empty
-	 * array.
+	 * Return an array of executable programs in the given directory using the
+	 * executableFileFilter. If the given path is already an executable program,
+	 * return an array containing the path of this program only, otherwise
+	 * return an empty array.
 	 * 
 	 * @param path
 	 * @return an array of executable files in the given directory, or an array
-	 *         containing the given path only if it is an executable file
+	 *         containing the given path only if it is an executable program
 	 */
 	public static final File[] getExecutable(String path) {
 		File file = new File(path);
@@ -45,6 +45,18 @@ public final class Helper {
 		return files;
 	}
 
+	/**
+	 * This method calls getExecutable(String path) to get paths of all
+	 * executable programs in the given path and return the first one.
+	 * 
+	 * @param path
+	 *            a path to a directory containing executable programs or a path
+	 *            of an executable program
+	 * @return the path of first executable program found in the given path
+	 * @throws NoExecutableFileFoundException
+	 *             if the given path does not contain any executable programs
+	 *             and the given path is not a valid executable program either
+	 */
 	public static final String getFirstExecutablePath(String path) throws NoExecutableFileFoundException {
 		File firstExecutable = getExecutable(path)[0];
 		if (firstExecutable == null) {
