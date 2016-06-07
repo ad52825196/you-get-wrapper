@@ -123,8 +123,12 @@ public class YouGet implements Runnable {
 		return filename;
 	}
 
-	private void setFilename() {
-		filename = info.get("title").getAsString();
+	private void setFilename() throws NoInfoOfTargetException {
+		if (info != null) {
+			filename = info.get("title").getAsString();
+		} else {
+			throw new NoInfoOfTargetException();
+		}
 	}
 
 	// getter and setter for forceWrite
@@ -155,8 +159,8 @@ public class YouGet implements Runnable {
 	}
 
 	/**
-	 * Only MAX_ATTEMPTS number of running are allowed. If there is a major
-	 * exception, stop with no more attempts.
+	 * Only MAX_ATTEMPTS number of running times are allowed. If there is a
+	 * major exception happened, stop with no more attempts.
 	 */
 	public void run() {
 		setState(false);
@@ -219,7 +223,11 @@ public class YouGet implements Runnable {
 			throw new ProcessErrorException(pr.getError());
 		}
 		info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
-		setFilename();
+		try {
+			setFilename();
+		} catch (NoInfoOfTargetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void download() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
