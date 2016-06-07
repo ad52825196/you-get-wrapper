@@ -62,51 +62,45 @@ public class YouGet implements Runnable {
 	}
 
 	// constructor
-	public YouGet(String target)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		setTarget(target);
+	public YouGet(String target) throws IOException {
+		this.target = new URL(target);
 	}
 
-	public YouGet(URL target)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
-		setTarget(target);
+	public YouGet(URL target) {
+		this.target = target;
 	}
 
-	public YouGet(String target, String outputPath)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(String target, String outputPath) throws IOException {
 		this(target);
 		setOutputPath(outputPath);
 	}
 
-	public YouGet(URL target, String outputPath)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(URL target, String outputPath) {
 		this(target);
 		setOutputPath(outputPath);
 	}
 
-	public YouGet(String target, String outputPath, boolean forceWrite)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(String target, String outputPath, boolean forceWrite) throws IOException {
 		this(target, outputPath);
 		setForceWrite(forceWrite);
 	}
 
-	public YouGet(URL target, String outputPath, boolean forceWrite)
-			throws NoExecutableSetException, IOException, InterruptedException, ProcessErrorException {
+	public YouGet(URL target, String outputPath, boolean forceWrite) {
 		this(target, outputPath);
 		setForceWrite(forceWrite);
 	}
 
-	// getter and setter for target
+	// getter and private setter for target
 	public final URL getTarget() {
 		return target;
 	}
 
-	public final void setTarget(String target) throws MalformedURLException {
-		this.target = new URL(target);
-	}
-
-	public final void setTarget(URL target) {
-		this.target = target;
+	private final void setTarget() throws MalformedURLException, NoInfoOfTargetException {
+		if (info != null) {
+			target = new URL(info.get("url").getAsString());
+		} else {
+			throw new NoInfoOfTargetException();
+		}
 	}
 
 	// getter and setter for outputPath
@@ -221,12 +215,14 @@ public class YouGet implements Runnable {
 		p.waitFor();
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
-		}
-		info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
-		try {
-			setFilename();
-		} catch (NoInfoOfTargetException e) {
-			e.printStackTrace();
+		} else {
+			info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
+			try {
+				setTarget();
+				setFilename();
+			} catch (NoInfoOfTargetException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
