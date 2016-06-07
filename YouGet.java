@@ -143,13 +143,9 @@ public class YouGet implements Runnable {
 		this.task = task;
 	}
 
-	// getter and private setter for state
+	// getter for state
 	public final boolean getState() {
 		return state;
-	}
-
-	private final void setState(boolean state) {
-		this.state = state;
 	}
 
 	/**
@@ -157,7 +153,7 @@ public class YouGet implements Runnable {
 	 * major exception happened, stop with no more attempts.
 	 */
 	public void run() {
-		setState(false);
+		state = false;
 		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
 			try {
 				switch (task) {
@@ -168,7 +164,7 @@ public class YouGet implements Runnable {
 					download();
 					break;
 				}
-				setState(true);
+				state = true;
 				task = null;
 				break;
 			} catch (NoExecutableSetException | IOException e) {
@@ -176,6 +172,7 @@ public class YouGet implements Runnable {
 				break;
 			} catch (ProcessErrorException | InterruptedException e) {
 				if (failedAttempts == MAX_ATTEMPTS - 1) {
+					// only print error message when failed MAX_ATTEMPTS times
 					e.printStackTrace();
 				}
 			}
