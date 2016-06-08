@@ -50,7 +50,7 @@ public class Controller {
 			processSet.add(new YouGet(line));
 			count++;
 		}
-		System.out.printf("%d URLs newly added, %d URLs in total.%n", count, processSet.size());
+		System.out.printf("%d URLs entered, %d URLs in working list now.%n", count, processSet.size());
 	}
 
 	/**
@@ -91,8 +91,8 @@ public class Controller {
 	}
 
 	/**
-	 * It waits for each thread in the threadPool to finish and then clear the
-	 * threadPool.
+	 * It waits for each thread in the threadPool to finish and then makes the
+	 * threadPool clear.
 	 * 
 	 * It adds all failed processes to failedProcessSet.
 	 */
@@ -105,14 +105,17 @@ public class Controller {
 				e.printStackTrace();
 			}
 			yg = threadPool.get(t);
-			threadPool.remove(t);
 			if (!yg.isSuccess()) {
 				failedProcessSet.add(yg);
 			}
 		}
+		threadPool.clear();
 	}
 
 	protected static void reportFailure() {
+		if (failedProcessSet.isEmpty()) {
+			return;
+		}
 		for (YouGet yg : failedProcessSet) {
 			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
 		}
@@ -138,6 +141,10 @@ public class Controller {
 
 	protected static void displayTitle() {
 		startTaskAll(YouGet.Task.INFO);
+		if (processSet.isEmpty()) {
+			return;
+		}
+		System.out.println("Titles:");
 		for (YouGet yg : processSet) {
 			System.out.printf("%s    %s%n", yg.getTitle(), yg.getTarget().toString());
 		}
