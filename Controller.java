@@ -63,8 +63,9 @@ public class Controller {
 	 * 
 	 * @param task
 	 *            a task for each process to do
+	 * @throws IOException
 	 */
-	protected static void startTaskAll(YouGet.Task task) {
+	protected static void startTaskAll(YouGet.Task task) throws IOException {
 		for (YouGet yg : processSet) {
 			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
@@ -112,13 +113,39 @@ public class Controller {
 		threadPool.clear();
 	}
 
-	protected static void reportFailure() {
+	/**
+	 * For each failed process, it shows the target URL and the task on which it
+	 * failed. Then it asks user whether to delete these failed processes from
+	 * URL list.
+	 * 
+	 * @throws IOException
+	 */
+	protected static void reportFailure() throws IOException {
 		if (failedProcessSet.isEmpty()) {
 			return;
 		}
 		for (YouGet yg : failedProcessSet) {
 			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
 		}
+		String message = "";
+		message += "Do you want to delete these failed URLs from the working list? (y/n)%n";
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		if (getUserChoice(message, options) == Choice.YES) {
+			removeFailed();
+		}
+	}
+
+	/**
+	 * It removes all processes existing in the failedProcessSet from processSet
+	 * and makes failedProcessSet clear.
+	 */
+	private static void removeFailed() {
+		for (YouGet yg : failedProcessSet) {
+			processSet.remove(yg);
+		}
+		failedProcessSet.clear();
 	}
 
 	protected static Choice displayMenu() throws IOException {
@@ -141,7 +168,7 @@ public class Controller {
 		return getUserChoice(message, options);
 	}
 
-	protected static void displayTitle() {
+	protected static void displayTitle() throws IOException {
 		startTaskAll(YouGet.Task.INFO);
 		if (processSet.isEmpty()) {
 			return;
