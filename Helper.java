@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.util.regex.Pattern;
 
 import com.google.gson.JsonParser;
@@ -54,14 +55,14 @@ public final class Helper {
 	 *            a path to a directory containing executable programs or a path
 	 *            of an executable program
 	 * @return the path of first executable program found in the given path
-	 * @throws NoExecutableFileFoundException
+	 * @throws FileNotFoundException
 	 *             if the given path does not contain any executable programs
 	 *             and the given path is not a valid executable program either
 	 */
-	public static final String getFirstExecutablePath(String path) throws NoExecutableFileFoundException {
+	public static final String getFirstExecutablePath(String path) throws FileNotFoundException {
 		File firstExecutable = getExecutable(path)[0];
 		if (firstExecutable == null) {
-			throw new NoExecutableFileFoundException();
+			throw new FileNotFoundException("No executable program found in the given path: " + path);
 		}
 		return firstExecutable.getAbsolutePath();
 	}

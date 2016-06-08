@@ -1,5 +1,5 @@
 import java.net.URL;
-import java.net.MalformedURLException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.google.gson.JsonObject;
@@ -40,16 +40,12 @@ public class YouGet implements Runnable {
 	 * @param path
 	 *            a path to a directory containing executable programs or a path
 	 *            of an executable program
-	 * @throws NoExecutableFileFoundException
+	 * @throws FileNotFoundException
 	 *             if the given path does not contain any executable programs
 	 *             and the given path is not a valid executable program either
 	 */
-	public static final void setExecutable(String path) throws NoExecutableFileFoundException {
-		try {
-			executable = Helper.getFirstExecutablePath(path);
-		} catch (NoExecutableFileFoundException e) {
-			throw new NoExecutableFileFoundException("No YouGet program found in the given path: " + path, e);
-		}
+	public static final void setExecutable(String path) throws FileNotFoundException {
+		executable = Helper.getFirstExecutablePath(path);
 	}
 
 	// getter and setter for charset
@@ -90,17 +86,9 @@ public class YouGet implements Runnable {
 		setForceWrite(forceWrite);
 	}
 
-	// getter and private setter for target
+	// getter for target
 	public final URL getTarget() {
 		return target;
-	}
-
-	private final void setTarget() throws MalformedURLException, NoInfoOfTargetException {
-		if (info != null) {
-			target = new URL(info.get("url").getAsString());
-		} else {
-			throw new NoInfoOfTargetException();
-		}
 	}
 
 	// getter and setter for outputPath
@@ -112,26 +100,9 @@ public class YouGet implements Runnable {
 		this.outputPath = outputPath;
 	}
 
-	// getter and private setter for title
+	// getter for title
 	public final String getTitle() {
 		return title;
-	}
-
-	private void setTitle() throws NoInfoOfTargetException {
-		if (info != null) {
-			title = info.get("title").getAsString();
-		} else {
-			throw new NoInfoOfTargetException();
-		}
-	}
-
-	// getter and setter for forceWrite
-	public final boolean getForceWrite() {
-		return forceWrite;
-	}
-
-	public final void setForceWrite(boolean forceWrite) {
-		this.forceWrite = forceWrite;
 	}
 
 	// getter and setter for task
@@ -141,6 +112,15 @@ public class YouGet implements Runnable {
 
 	public final void setTask(Task task) {
 		this.task = task;
+	}
+
+	// getter and setter for forceWrite
+	public final boolean getForceWrite() {
+		return forceWrite;
+	}
+
+	public final void setForceWrite(boolean forceWrite) {
+		this.forceWrite = forceWrite;
 	}
 
 	// getter for success
