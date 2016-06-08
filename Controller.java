@@ -86,32 +86,22 @@ public class Controller {
 		}
 	}
 
-	private static Choice displayMenu() throws IOException {
-		System.out.println("Menu:");
-		System.out.println("1. Input target URLs");
-		System.out.println("3. Show all titles");
-		System.out.println("6. Exit");
+	protected static Choice displayMenu() throws IOException {
+		String message = "";
+		message += "Menu:%n";
+		message += "1. Input target URLs%n";
+		message += "3. Show all titles%n";
+		message += "6. Exit%n";
 
-		Choice choice = null;
-		boolean again = true;
-		while (again) {
-			switch (input.readLine()) {
-			case "1":
-				choice = Choice.INPUT;
-				again = false;
-				break;
-			case "3":
-				choice = Choice.TITLE;
-				again = false;
-				break;
-			case "6":
-				choice = Choice.EXIT;
-				again = false;
-				break;
-			}
-		}
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("1", Choice.INPUT);
+		options.put("2", Choice.DOWNLOAD);
+		options.put("3", Choice.TITLE);
+		options.put("4", Choice.LOAD);
+		options.put("5", Choice.SAVE);
+		options.put("6", Choice.EXIT);
 
-		return choice;
+		return getUserChoice(message, options);
 	}
 
 	private static void displayTitle() {
@@ -123,6 +113,29 @@ public class Controller {
 
 	private static void displayExit() {
 		System.out.println("Exit. Thank you!");
+	}
+
+	protected static String getUserString(String message) throws IOException {
+		System.out.printf(message);
+		return (input.readLine());
+	}
+
+	protected static String getUserChoice(String message, Set<String> options) throws IOException {
+		String line;
+		do {
+			System.out.printf(message);
+			line = input.readLine();
+		} while (!options.contains(line));
+		return line;
+	}
+
+	protected static <V> V getUserChoice(String message, Map<String, V> options) throws IOException {
+		String line;
+		do {
+			System.out.printf(message);
+			line = input.readLine();
+		} while (!options.containsKey(line));
+		return options.get(line);
 	}
 
 	public static void main(String[] args) {
