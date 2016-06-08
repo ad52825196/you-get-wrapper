@@ -128,9 +128,13 @@ public class YouGet implements Runnable {
 		return success;
 	}
 
+	// two YouGet processes are considered equal if they have the same URL
 	@Override
 	public boolean equals(Object o) {
-		return (o instanceof YouGet) && (target.toString().equals(((YouGet) o).getTarget().toString()));
+		if (o instanceof YouGet) {
+			return target.toString().equals(((YouGet) o).getTarget().toString());
+		}
+		return false;
 	}
 
 	@Override
