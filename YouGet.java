@@ -16,11 +16,11 @@ public class YouGet implements Runnable {
 	private static String executable;
 	private static String charset; // platform dependent
 	private URL target;
-	private String outputPath = "/";
+	private String outputPath;
 	private String title;
-	private JsonObject info;
 	private Task task;
-	private boolean forceWrite = false;
+	private boolean info;
+	private boolean forceWrite;
 	private boolean success;
 
 	public static enum Task {
@@ -58,11 +58,19 @@ public class YouGet implements Runnable {
 	}
 
 	// constructor
+	private YouGet() {
+		outputPath = "/";
+		info = false;
+		forceWrite = false;
+	}
+
 	public YouGet(String target) throws IOException {
+		this();
 		this.target = new URL(target);
 	}
 
 	public YouGet(URL target) {
+		this();
 		this.target = target;
 	}
 
@@ -145,6 +153,8 @@ public class YouGet implements Runnable {
 	/**
 	 * Only MAX_ATTEMPTS number of running times are allowed. If there is a
 	 * major exception happened, stop with no more attempts.
+	 * 
+	 * If there is no task set, the running will be considered as a success.
 	 */
 	@Override
 	public void run() {
@@ -175,14 +185,12 @@ public class YouGet implements Runnable {
 	}
 
 	/**
-	 * This method is automatically triggered when the object is constructed.
+	 * It will run the YouGet program to get the info of the target URL if it
+	 * has not been fetched yet and set the info flag to be true. It will update
+	 * the title and target fields using the returned Json data.
 	 * 
-	 * It will run the YouGet program to get the info of the target URL and
-	 * store the parsed Json result into the info field. At the end, it also
-	 * sets up the filename using the title field in the returned info.
-	 * 
-	 * It needs a user specified charset to read the output of the process
-	 * correctly.
+	 * It needs a user specified charset to read the output of the YouGet
+	 * program correctly.
 	 * 
 	 * @throws NoExecutableSetException
 	 *             if the executable file location is not set
@@ -194,7 +202,7 @@ public class YouGet implements Runnable {
 	 * @throws InterruptedException
 	 */
 	private void info() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
-		if (info != null) {
+		if (info) {
 			return;
 		}
 		if (executable == null) {
@@ -211,13 +219,10 @@ public class YouGet implements Runnable {
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
 		} else {
-			info = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
-			try {
-				setTarget();
-				setTitle();
-			} catch (NoInfoOfTargetException e) {
-				e.printStackTrace();
-			}
+			JsonObject jsonObject = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
+			target = new URL(jsonObject.get("url").getAsString());
+			title = jsonObject.get("title").getAsString();
+			info = true;
 		}
 	}
 
