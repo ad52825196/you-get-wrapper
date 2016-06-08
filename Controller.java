@@ -1,6 +1,8 @@
 import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileNotFoundException;
@@ -25,7 +27,7 @@ public class Controller {
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
 	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-	private static Set<Thread> threadPool = new HashSet<Thread>();
+	private static Map<Thread, YouGet> threadPool = new HashMap<Thread, YouGet>();
 	private static Set<YouGet> processSet = new LinkedHashSet<YouGet>();
 	private static Set<YouGet> failedProcessSet = new HashSet<YouGet>();
 
@@ -40,47 +42,77 @@ public class Controller {
 	 * 
 	 * @throws IOException
 	 */
-	private static void getInput() throws IOException {
+	protected static void getInput() throws IOException {
 		int count = 0;
 		String line;
 		System.out.println("Please enter all target URLs, one line for each:");
 		while (!(line = input.readLine()).equals("")) {
-			YouGet yg = new YouGet(line);
-			processSet.add(yg);
+			processSet.add(new YouGet(line));
 			count++;
 		}
 		System.out.printf("%d URLs newly added, %d URLs in total.%n", count, processSet.size());
 	}
 
-	private static void threadDistribute(YouGet.Task t) {
+	/**
+	 * It starts the task on each process in the processSet. It will call
+	 * reportFailure() method to show information of failed processes at the
+	 * end.
+	 * 
+	 * Only MAX_NUMBER_OF_THREADS number of threads are allowed to be running at
+	 * the same time.
+	 * 
+	 * @param task
+	 *            a task for each process to do
+	 */
+	protected static void startTaskAll(YouGet.Task task) {
 		for (YouGet yg : processSet) {
 			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
 			}
-			yg.setTask(t);
-			threadPool.add(yg);
-			yg.start();
+			startTask(yg, task);
 		}
 		clearThreadPool();
 		reportFailure();
 	}
 
-	private static void clearThreadPool() {
-		for (Thread t : threadPool) {
+	/**
+	 * It assigns the given task to the process and starts a new thread to do
+	 * that.
+	 * 
+	 * @param yg
+	 * @param task
+	 *            a task for the process to do
+	 */
+	protected static void startTask(YouGet yg, YouGet.Task task) {
+		yg.setTask(task);
+		Thread t = new Thread(yg);
+		threadPool.put(t, yg);
+		t.start();
+	}
+
+	/**
+	 * It waits for each thread in the threadPool to finish and then clear the
+	 * threadPool.
+	 * 
+	 * It adds all failed processes to failedProcessSet.
+	 */
+	protected static void clearThreadPool() {
+		YouGet yg;
+		for (Thread t : threadPool.keySet()) {
 			try {
 				t.join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			yg = threadPool.get(t);
 			threadPool.remove(t);
-			YouGet yg = (YouGet) t;
 			if (!yg.isSuccess()) {
 				failedProcessSet.add(yg);
 			}
 		}
 	}
 
-	private static void reportFailure() {
+	protected static void reportFailure() {
 		for (YouGet yg : failedProcessSet) {
 			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
 		}
@@ -104,14 +136,14 @@ public class Controller {
 		return getUserChoice(message, options);
 	}
 
-	private static void displayTitle() {
-		threadDistribute(YouGet.Task.INFO);
+	protected static void displayTitle() {
+		startTaskAll(YouGet.Task.INFO);
 		for (YouGet yg : processSet) {
 			System.out.printf("%s    %s%n", yg.getTitle(), yg.getTarget().toString());
 		}
 	}
 
-	private static void displayExit() {
+	protected static void displayExit() {
 		System.out.println("Exit. Thank you!");
 	}
 
