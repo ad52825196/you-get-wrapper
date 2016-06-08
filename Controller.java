@@ -135,6 +135,8 @@ public class Controller {
 		options.put("4", Choice.LOAD);
 		options.put("5", Choice.SAVE);
 		options.put("6", Choice.EXIT);
+		options.put("e", Choice.EXIT);
+		options.put("q", Choice.EXIT);
 
 		return getUserChoice(message, options);
 	}
