@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class Controller {
 	// at least 1 thread
-	private static final int NUMBER_OF_THREADS = 1;
+	private static final int MAX_NUMBER_OF_THREADS = 1;
 	// location of the downloading engine
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK as charset in Chinese version
@@ -52,7 +52,7 @@ public class Controller {
 
 	private static void threadDistribute(YouGet.Task t) {
 		for (YouGet yg : processSet) {
-			if (threadPool.size() == NUMBER_OF_THREADS) {
+			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
 			}
 			yg.setTask(t);
