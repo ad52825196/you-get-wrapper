@@ -41,13 +41,15 @@ public class Controller {
 	 * @throws IOException
 	 */
 	private static void getInput() throws IOException {
+		int count = 0;
 		String line;
 		System.out.println("Please enter all target URLs, one line for each:");
 		while (!(line = input.readLine()).equals("")) {
 			YouGet yg = new YouGet(line);
 			processSet.add(yg);
+			count++;
 		}
-		System.out.printf("%d URLs in total.%n%n", processSet.size());
+		System.out.printf("%d URLs newly added, %d URLs in total.%n", count, processSet.size());
 	}
 
 	private static void threadDistribute(YouGet.Task t) {
@@ -82,9 +84,6 @@ public class Controller {
 		for (YouGet yg : failedProcessSet) {
 			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
 		}
-		if (failedProcessSet.size() > 0) {
-			System.out.println();
-		}
 	}
 
 	private static Choice displayMenu() throws IOException {
@@ -118,10 +117,7 @@ public class Controller {
 	private static void displayTitle() {
 		threadDistribute(YouGet.Task.INFO);
 		for (YouGet yg : processSet) {
-			System.out.printf("%s  %s%n", yg.getTitle(), yg.getTarget().toString());
-		}
-		if (processSet.size() > 0) {
-			System.out.println();
+			System.out.printf("%s    %s%n", yg.getTitle(), yg.getTarget().toString());
 		}
 	}
 
