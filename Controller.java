@@ -29,8 +29,8 @@ public class Controller {
 	private static Set<YouGet> processSet = new LinkedHashSet<YouGet>();
 	private static Set<YouGet> failedProcessSet = new HashSet<YouGet>();
 
-	private static enum Choice {
-		INPUT, DOWNLOAD, TITLE, LOAD, SAVE, EXIT;
+	protected static enum Choice {
+		INPUT, DOWNLOAD, TITLE, LOAD, SAVE, EXIT, YES, NO;
 	}
 
 	/**
@@ -154,13 +154,15 @@ public class Controller {
 				case TITLE:
 					displayTitle();
 					break;
-				case SAVE:
-					break;
 				case LOAD:
+					break;
+				case SAVE:
 					break;
 				case EXIT:
 					again = false;
 					displayExit();
+					break;
+				default:
 					break;
 				}
 			} while (again);
