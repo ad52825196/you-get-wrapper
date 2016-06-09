@@ -1,6 +1,11 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.gson.JsonParser;
@@ -14,6 +19,7 @@ import com.google.gson.JsonParser;
 
 public final class Helper {
 	private static final ExecutableFileFilter executableFileFilter = new ExecutableFileFilter();
+	public static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 	public static final JsonParser jsonParser = new JsonParser();
 
 	private static final class ExecutableFileFilter implements FileFilter {
@@ -65,6 +71,32 @@ public final class Helper {
 			throw new FileNotFoundException("No executable program found in the given path: " + path);
 		}
 		return firstExecutable.getAbsolutePath();
+	}
+
+	public static String getUserChoice(Set<String> options) throws IOException {
+		String line;
+		do {
+			line = input.readLine().toLowerCase();
+		} while (!options.contains(line));
+		return line;
+	}
+
+	public static String getUserChoice(String message, Set<String> options) throws IOException {
+		String line;
+		do {
+			System.out.printf(message);
+			line = input.readLine().toLowerCase();
+		} while (!options.contains(line));
+		return line;
+	}
+
+	public static <V> V getUserChoice(String message, Map<String, V> options) throws IOException {
+		String line;
+		do {
+			System.out.printf(message);
+			line = input.readLine().toLowerCase();
+		} while (!options.containsKey(line));
+		return options.get(line);
 	}
 
 }

@@ -4,8 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -27,7 +25,6 @@ public class Controller {
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
-	private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 	private static Map<Thread, YouGet> threadPool = new HashMap<Thread, YouGet>();
 	private static Set<YouGet> processSet = new LinkedHashSet<YouGet>();
 	private static Set<YouGet> failedProcessSet = new HashSet<YouGet>();
@@ -43,11 +40,11 @@ public class Controller {
 	 * 
 	 * @throws IOException
 	 */
-	protected static void getInput() throws IOException {
+	protected static void addTarget() throws IOException {
 		int count = 0;
 		String line;
 		System.out.println("Please enter all target URLs, one line for each:");
-		while (!(line = input.readLine()).equals("")) {
+		while (!(line = Helper.input.readLine()).equals("")) {
 			processSet.add(new YouGet(line));
 			count++;
 		}
@@ -75,7 +72,7 @@ public class Controller {
 			options.add(Integer.toString(i));
 		}
 		Set<Integer> toRemove = new HashSet<Integer>();
-		while (!(line = getUserChoice(options)).equals("")) {
+		while (!(line = Helper.getUserChoice(options)).equals("")) {
 			// for program, index starts from 0
 			toRemove.add(Integer.parseInt(line) - 1);
 			count++;
@@ -163,7 +160,7 @@ public class Controller {
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);
-		if (getUserChoice(message, options) == Choice.YES) {
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
 			removeFailed();
 		}
 	}
@@ -224,7 +221,7 @@ public class Controller {
 		options.put("e", Choice.EXIT);
 		options.put("q", Choice.EXIT);
 
-		return getUserChoice(message, options);
+		return Helper.getUserChoice(message, options);
 	}
 
 	protected static void displayTarget() {
@@ -253,39 +250,13 @@ public class Controller {
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);
-		if (getUserChoice(message, options) == Choice.YES) {
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
 			deleteTarget();
 		}
 	}
 
 	protected static void displayExit() {
 		System.out.println("Exit. Thank you!");
-	}
-
-	protected static String getUserChoice(Set<String> options) throws IOException {
-		String line;
-		do {
-			line = input.readLine().toLowerCase();
-		} while (!options.contains(line));
-		return line;
-	}
-
-	protected static String getUserChoice(String message, Set<String> options) throws IOException {
-		String line;
-		do {
-			System.out.printf(message);
-			line = input.readLine().toLowerCase();
-		} while (!options.contains(line));
-		return line;
-	}
-
-	protected static <V> V getUserChoice(String message, Map<String, V> options) throws IOException {
-		String line;
-		do {
-			System.out.printf(message);
-			line = input.readLine().toLowerCase();
-		} while (!options.containsKey(line));
-		return options.get(line);
 	}
 
 	public static void main(String[] args) {
@@ -297,7 +268,7 @@ public class Controller {
 			do {
 				switch (displayMenu()) {
 				case ADD:
-					getInput();
+					addTarget();
 					break;
 				case DELETE:
 					displayTarget();
