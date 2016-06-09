@@ -175,10 +175,15 @@ public class YouGet implements Runnable {
 			} catch (NoExecutableSetException | IOException e) {
 				e.printStackTrace();
 				break;
-			} catch (ProcessErrorException | InterruptedException e) {
+			} catch (InterruptedException e) {
 				if (failedAttempts == MAX_ATTEMPTS - 1) {
 					// only print error message when failed MAX_ATTEMPTS times
 					e.printStackTrace();
+				}
+			} catch (ProcessErrorException e) {
+				if (failedAttempts == MAX_ATTEMPTS - 1) {
+					// only print error message when failed MAX_ATTEMPTS times
+					System.err.println(e.getMessage());
 				}
 			}
 		}
