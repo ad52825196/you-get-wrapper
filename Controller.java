@@ -183,16 +183,19 @@ public class Controller {
 		System.out.println("Exit. Thank you!");
 	}
 
-	protected static String getUserString(String message) throws IOException {
-		System.out.printf(message);
-		return (input.readLine());
+	protected static String getUserChoice(Set<String> options) throws IOException {
+		String line;
+		do {
+			line = input.readLine().toLowerCase();
+		} while (!options.contains(line));
+		return line;
 	}
 
 	protected static String getUserChoice(String message, Set<String> options) throws IOException {
 		String line;
 		do {
 			System.out.printf(message);
-			line = input.readLine();
+			line = input.readLine().toLowerCase();
 		} while (!options.contains(line));
 		return line;
 	}
@@ -201,7 +204,7 @@ public class Controller {
 		String line;
 		do {
 			System.out.printf(message);
-			line = input.readLine();
+			line = input.readLine().toLowerCase();
 		} while (!options.containsKey(line));
 		return options.get(line);
 	}
