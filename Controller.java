@@ -67,7 +67,7 @@ public class Controller {
 		}
 		int count = 0;
 		String line;
-		System.out.println("Please enter all ids of target URL to delete, one line for each:");
+		System.out.println("Please enter ids of all target URLs to delete, one line for each:");
 		Set<String> options = new HashSet<String>();
 		options.add("");
 		for (int i = 1; i <= processSet.size(); i++) {
@@ -183,6 +183,9 @@ public class Controller {
 	 * It creates an empty set and put all processes that are not asked to
 	 * remove into this new set. At the end, it replaces the old processSet with
 	 * the new one.
+	 * 
+	 * Note: remove() method will not work in this case as the hashCode() of a
+	 * process may have been changed after it calls info() method.
 	 * 
 	 * @param toRemove
 	 *            indexes of all processes to be removed
