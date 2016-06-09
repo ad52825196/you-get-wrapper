@@ -3,6 +3,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileNotFoundException;
@@ -32,7 +33,7 @@ public class Controller {
 	private static Set<YouGet> failedProcessSet = new HashSet<YouGet>();
 
 	protected static enum Choice {
-		INPUT, DOWNLOAD, TITLE, LOAD, SAVE, EXIT, YES, NO;
+		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO;
 	}
 
 	/**
@@ -51,6 +52,36 @@ public class Controller {
 			count++;
 		}
 		System.out.printf("%d URLs entered, %d URLs in working list now.%n", count, processSet.size());
+	}
+
+	/**
+	 * Delete all target URLs specified by user.
+	 * 
+	 * An empty line indicates the end of input.
+	 * 
+	 * @throws IOException
+	 */
+	protected static void deleteTarget() throws IOException {
+		if (processSet.isEmpty()) {
+			return;
+		}
+		int count = 0;
+		String line;
+		System.out.println("Please enter all ids of target URL to delete, one line for each:");
+		Set<String> options = new HashSet<String>();
+		options.add("");
+		for (int i = 1; i <= processSet.size(); i++) {
+			// for user, index starts from 1
+			options.add(Integer.toString(i));
+		}
+		Set<Integer> toRemove = new HashSet<Integer>();
+		while (!(line = getUserChoice(options)).equals("")) {
+			// for program, index starts from 0
+			toRemove.add(Integer.parseInt(line) - 1);
+			count++;
+		}
+		removeProcess(toRemove);
+		System.out.printf("%d URLs deleted, %d URLs in working list now.%n", count, processSet.size());
 	}
 
 	/**
@@ -128,7 +159,7 @@ public class Controller {
 			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
 		}
 		String message = "";
-		message += "Do you want to delete these failed URLs from the working list? (y/n)%n";
+		message += "Do you want to remove these failed URLs from the working list? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);
@@ -148,34 +179,79 @@ public class Controller {
 		failedProcessSet.clear();
 	}
 
+	/**
+	 * It creates an empty set and put all processes that are not asked to
+	 * remove into this new set. At the end, it replaces the old processSet with
+	 * the new one.
+	 * 
+	 * @param toRemove
+	 *            indexes of all processes to be removed
+	 */
+	protected static void removeProcess(Set<Integer> toRemove) {
+		YouGet yg;
+		Set<YouGet> temp = new HashSet<YouGet>();
+		Iterator<YouGet> it = processSet.iterator();
+		for (int i = 0; it.hasNext(); i++) {
+			yg = it.next();
+			if (toRemove.contains(i)) {
+				System.out.printf("%s has been removed.%n", yg.getTarget().toString());
+			} else {
+				temp.add(yg);
+			}
+		}
+		processSet = temp;
+	}
+
 	protected static Choice displayMenu() throws IOException {
 		String message = "";
 		message += "Menu:%n";
 		message += "1. Input target URLs%n";
+		message += "2. Delete target URLs%n";
 		message += "3. Show all titles%n";
-		message += "6. Exit%n";
+		message += "0. Exit%n";
 
 		Map<String, Choice> options = new HashMap<String, Choice>();
-		options.put("1", Choice.INPUT);
-		options.put("2", Choice.DOWNLOAD);
+		options.put("1", Choice.ADD);
+		options.put("2", Choice.DELETE);
 		options.put("3", Choice.TITLE);
-		options.put("4", Choice.LOAD);
-		options.put("5", Choice.SAVE);
-		options.put("6", Choice.EXIT);
+		options.put("4", Choice.DOWNLOAD);
+		options.put("5", Choice.LOAD);
+		options.put("6", Choice.SAVE);
+		options.put("0", Choice.EXIT);
 		options.put("e", Choice.EXIT);
 		options.put("q", Choice.EXIT);
 
 		return getUserChoice(message, options);
 	}
 
-	protected static void displayTitle() throws IOException {
-		startTaskAll(YouGet.Task.INFO);
+	protected static void displayTarget() {
 		if (processSet.isEmpty()) {
 			return;
 		}
+		int id = 0;
+		System.out.println("Targets:");
+		for (YouGet yg : processSet) {
+			System.out.printf("%d. %s%n", ++id, yg.getTarget().toString());
+		}
+	}
+
+	protected static void displayTitle() throws IOException {
+		if (processSet.isEmpty()) {
+			return;
+		}
+		startTaskAll(YouGet.Task.INFO);
+		int id = 0;
 		System.out.println("Titles:");
 		for (YouGet yg : processSet) {
-			System.out.printf("%s    %s%n", yg.getTitle(), yg.getTarget().toString());
+			System.out.printf("%d. %s    %s%n", ++id, yg.getTitle(), yg.getTarget().toString());
+		}
+		String message = "";
+		message += "Do you want to delete URLs from the working list? (y/n)%n";
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		if (getUserChoice(message, options) == Choice.YES) {
+			deleteTarget();
 		}
 	}
 
@@ -217,13 +293,17 @@ public class Controller {
 			boolean again = true;
 			do {
 				switch (displayMenu()) {
-				case INPUT:
+				case ADD:
 					getInput();
 					break;
-				case DOWNLOAD:
+				case DELETE:
+					displayTarget();
+					deleteTarget();
 					break;
 				case TITLE:
 					displayTitle();
+					break;
+				case DOWNLOAD:
 					break;
 				case LOAD:
 					break;
