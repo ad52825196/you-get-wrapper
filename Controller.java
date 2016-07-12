@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * This is the controller for downloading videos from multiple URLs given by the
  * user and putting them into separate folders named after corresponding video
- * titles.
+ * titles or into a single folder based on user instruction.
  * 
  * By default, it uses You-Get as the downloading tool.
  * 
@@ -25,9 +26,14 @@ public class Controller {
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
-	private static Map<Thread, YouGet> threadPool = new HashMap<Thread, YouGet>();
-	private static Set<YouGet> processSet = new LinkedHashSet<YouGet>();
-	private static Set<YouGet> failedProcessSet = new HashSet<YouGet>();
+	private static Set<YouGet> threadPool = new HashSet<YouGet>();
+	private static Set<Target> targetSet = new LinkedHashSet<Target>();
+	private static Set<Target> failedTargetSet = new HashSet<Target>();
+	private static String root;
+	private static String folder;
+	private static String preferredFormat;
+	private static boolean separateFolder;
+	private static boolean forceWrite;
 
 	protected static enum Choice {
 		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO;
@@ -45,10 +51,16 @@ public class Controller {
 		String line;
 		System.out.println("Please enter all target URLs, one line for each:");
 		while (!(line = Helper.input.readLine()).equals("")) {
-			processSet.add(new YouGet(line));
-			count++;
+			try {
+				if (targetSet.add(new Target(line))) {
+					count++;
+				}
+			} catch (MalformedURLException e) {
+				System.err.println("Invalid URL.");
+				e.printStackTrace();
+			}
 		}
-		System.out.printf("%d URLs entered, %d URLs in working list now.%n", count, processSet.size());
+		System.out.printf("%d URLs added, %d URLs in target list now.%n", count, targetSet.size());
 	}
 
 	/**
@@ -59,64 +71,64 @@ public class Controller {
 	 * @throws IOException
 	 */
 	protected static void deleteTarget() throws IOException {
-		if (processSet.isEmpty()) {
+		if (targetSet.isEmpty()) {
+			System.out.println("Target list is empty.");
 			return;
+		}
+		Set<String> options = new HashSet<String>();
+		options.add("");
+		for (int i = 1; i <= targetSet.size(); i++) {
+			// for user, index starts from 1
+			options.add(Integer.toString(i));
 		}
 		int count = 0;
 		String line;
 		System.out.println("Please enter ids of all target URLs to delete, one line for each:");
-		Set<String> options = new HashSet<String>();
-		options.add("");
-		for (int i = 1; i <= processSet.size(); i++) {
-			// for user, index starts from 1
-			options.add(Integer.toString(i));
-		}
 		Set<Integer> toRemove = new HashSet<Integer>();
 		while (!(line = Helper.getUserChoice(options)).equals("")) {
 			// for program, index starts from 0
-			toRemove.add(Integer.parseInt(line) - 1);
-			count++;
+			if (toRemove.add(Integer.parseInt(line) - 1)) {
+				count++;
+			}
 		}
-		removeProcess(toRemove);
-		System.out.printf("%d URLs deleted, %d URLs in working list now.%n", count, processSet.size());
+		removeTarget(toRemove);
+		System.out.printf("%d URLs deleted, %d URLs in target list now.%n", count, targetSet.size());
 	}
 
 	/**
-	 * It starts the task on each process in the processSet. It will call
-	 * reportFailure() method to show information of failed processes at the
-	 * end.
+	 * It starts the task on each target in the targetSet. It will call
+	 * reportFailure() method to show information of failed targets at the end.
 	 * 
 	 * Only MAX_NUMBER_OF_THREADS number of threads are allowed to be running at
 	 * the same time.
 	 * 
 	 * @param task
 	 *            a task for each process to do
-	 * @throws IOException
 	 */
-	protected static void startTaskAll(YouGet.Task task) throws IOException {
-		for (YouGet yg : processSet) {
+	protected static void startTaskAll(YouGet.Task task) {
+		for (Target target : targetSet) {
 			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
 			}
-			startTask(yg, task);
+			startTask(target, task);
 		}
 		clearThreadPool();
 		reportFailure();
 	}
 
 	/**
-	 * It assigns the given task to the process and starts a new thread to do
-	 * that.
+	 * It creates an instance of the downloader to do the specified task on the
+	 * given target.
 	 * 
-	 * @param yg
+	 * @param target
+	 *            the target to deal with
 	 * @param task
 	 *            a task for the process to do
 	 */
-	protected static void startTask(YouGet yg, YouGet.Task task) {
-		yg.setTask(task);
-		Thread t = new Thread(yg);
-		threadPool.put(t, yg);
-		t.start();
+	protected static void startTask(Target target, YouGet.Task task) {
+		YouGet yg = new YouGet(target, task);
+		threadPool.add(yg);
+		yg.start();
 	}
 
 	/**
@@ -126,88 +138,87 @@ public class Controller {
 	 * It adds all failed processes to failedProcessSet.
 	 */
 	protected static void clearThreadPool() {
-		YouGet yg;
-		for (Thread t : threadPool.keySet()) {
+		for (YouGet yg : threadPool) {
 			try {
-				t.join();
+				yg.join();
+				if (!yg.isSuccess()) {
+					failedTargetSet.add(yg.getTarget());
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
-			yg = threadPool.get(t);
-			if (!yg.isSuccess()) {
-				failedProcessSet.add(yg);
 			}
 		}
 		threadPool.clear();
 	}
 
 	/**
-	 * For each failed process, it shows the target URL and the task on which it
-	 * failed. Then it asks user whether to delete these failed processes from
-	 * URL list.
-	 * 
-	 * @throws IOException
+	 * It shows the URL of each failed target and asks user whether to delete
+	 * these failed targets from the target list.
 	 */
-	protected static void reportFailure() throws IOException {
-		if (failedProcessSet.isEmpty()) {
+	protected static void reportFailure() {
+		if (failedTargetSet.isEmpty()) {
 			return;
 		}
-		for (YouGet yg : failedProcessSet) {
-			System.out.printf("%s failed in task %s.%n", yg.getTarget().toString(), yg.getTask().toString());
+		for (Target target : failedTargetSet) {
+			System.out.printf("%s has failed.%n", target.getUrl().toString());
 		}
 		String message = "";
-		message += "Do you want to remove these failed URLs from the working list? (y/n)%n";
+		message += "Do you want to delete these failed URLs from the target list? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);
-		if (Helper.getUserChoice(message, options) == Choice.YES) {
-			removeFailed();
+		try {
+			if (Helper.getUserChoice(message, options) == Choice.YES) {
+				removeFailed();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * It removes all processes existing in the failedProcessSet from processSet
-	 * and makes failedProcessSet clear.
+	 * It removes all failed targets in the failedTargetSet from targetSet and
+	 * makes failedTargetSet clear.
 	 */
 	private static void removeFailed() {
-		for (YouGet yg : failedProcessSet) {
-			processSet.remove(yg);
+		for (Target target : failedTargetSet) {
+			targetSet.remove(target);
 		}
-		failedProcessSet.clear();
+		failedTargetSet.clear();
 	}
 
 	/**
-	 * It creates an empty set and put all processes that are not asked to
-	 * remove into this new set. At the end, it replaces the old processSet with
-	 * the new one.
+	 * It creates an empty set and put all targets that are not asked to remove
+	 * into this new set. At the end, it replaces the old targetSet with the new
+	 * one.
 	 * 
-	 * Note: remove() method will not work in this case as the hashCode() of a
-	 * process may have been changed after it calls info() method.
+	 * Note: remove() method will not work if the hashCode() value of an object
+	 * has been changed after it was added to the set.
 	 * 
 	 * @param toRemove
-	 *            indexes of all processes to be removed
+	 *            indexes of all targets to be removed
 	 */
-	protected static void removeProcess(Set<Integer> toRemove) {
-		YouGet yg;
-		Set<YouGet> temp = new HashSet<YouGet>();
-		Iterator<YouGet> it = processSet.iterator();
+	protected static void removeTarget(Set<Integer> toRemove) {
+		Target target;
+		Set<Target> temp = new HashSet<Target>();
+		Iterator<Target> it = targetSet.iterator();
 		for (int i = 0; it.hasNext(); i++) {
-			yg = it.next();
+			target = it.next();
 			if (toRemove.contains(i)) {
-				System.out.printf("%s has been removed.%n", yg.getTarget().toString());
+				System.out.printf("%s has been removed.%n", target.getUrl().toString());
 			} else {
-				temp.add(yg);
+				temp.add(target);
 			}
 		}
-		processSet = temp;
+		targetSet = temp;
 	}
 
 	protected static Choice displayMenu() throws IOException {
 		String message = "";
 		message += "Menu:%n";
-		message += "1. Input target URLs%n";
+		message += "1. Add target URLs%n";
 		message += "2. Delete target URLs%n";
-		message += "3. Show all titles%n";
+		message += "3. Show titles of targets%n";
 		message += "0. Exit%n";
 
 		Map<String, Choice> options = new HashMap<String, Choice>();
@@ -225,28 +236,30 @@ public class Controller {
 	}
 
 	protected static void displayTarget() {
-		if (processSet.isEmpty()) {
+		if (targetSet.isEmpty()) {
+			System.out.println("Target list is empty.");
 			return;
 		}
 		int id = 0;
 		System.out.println("Targets:");
-		for (YouGet yg : processSet) {
-			System.out.printf("%d. %s%n", ++id, yg.getTarget().toString());
+		for (Target target : targetSet) {
+			System.out.printf("%d. %s%n", ++id, target.getUrl().toString());
 		}
 	}
 
 	protected static void displayTitle() throws IOException {
-		if (processSet.isEmpty()) {
+		if (targetSet.isEmpty()) {
+			System.out.println("Target list is empty.");
 			return;
 		}
 		startTaskAll(YouGet.Task.INFO);
 		int id = 0;
 		System.out.println("Titles:");
-		for (YouGet yg : processSet) {
-			System.out.printf("%d. %s    %s%n", ++id, yg.getTitle(), yg.getTarget().toString());
+		for (Target target : targetSet) {
+			System.out.printf("%d. %s    %s%n", ++id, target.getTitle(), target.getUrl().toString());
 		}
 		String message = "";
-		message += "Do you want to delete URLs from the working list? (y/n)%n";
+		message += "Do you want to delete URLs from the target list? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);
@@ -272,7 +285,9 @@ public class Controller {
 					break;
 				case DELETE:
 					displayTarget();
-					deleteTarget();
+					if (!targetSet.isEmpty()) {
+						deleteTarget();
+					}
 					break;
 				case TITLE:
 					displayTitle();

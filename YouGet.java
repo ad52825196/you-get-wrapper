@@ -1,6 +1,6 @@
-import java.net.URL;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import com.google.gson.JsonObject;
 
@@ -11,16 +11,16 @@ import com.google.gson.JsonObject;
  *
  */
 
-public class YouGet implements Runnable {
+public class YouGet extends Thread {
 	private static final int MAX_ATTEMPTS = 3;
 	private static String executable;
-	private static String charset; // platform dependent
-	private URL target;
-	private String root;
-	private String folder;
-	private String title;
+	// charset of the output of YouGet process, platform dependent
+	private static String charset;
+	private Target target;
 	private Task task;
-	private boolean info;
+	private String url;
+	private String path;
+	private String preferredFormat;
 	private boolean forceWrite;
 	private boolean success;
 
@@ -28,7 +28,6 @@ public class YouGet implements Runnable {
 		INFO, DOWNLOAD;
 	}
 
-	// getter and setter for executable
 	public static final String getExecutable() {
 		return executable;
 	}
@@ -49,81 +48,37 @@ public class YouGet implements Runnable {
 		executable = Helper.getFirstExecutablePath(path);
 	}
 
-	// getter and setter for charset
 	public static final String getCharset() {
 		return charset;
 	}
 
-	public static void setCharset(String charset) {
+	public static final void setCharset(String charset) {
 		YouGet.charset = charset;
 	}
 
-	// constructor
-	private YouGet() {
-		root = "/";
-		info = false;
-		forceWrite = false;
+	public YouGet(Target target, Task task) {
+		setTarget(target);
+		setTask(task);
+		setPath(null);
 	}
 
-	public YouGet(String target) throws IOException {
-		this();
-		this.target = new URL(target);
-	}
-
-	public YouGet(URL target) {
-		this();
-		this.target = target;
-	}
-
-	public YouGet(String target, String root) throws IOException {
-		this(target);
-		setRoot(root);
-	}
-
-	public YouGet(URL target, String root) {
-		this(target);
-		setRoot(root);
-	}
-
-	public YouGet(String target, String root, boolean forceWrite) throws IOException {
-		this(target, root);
+	public YouGet(Target target, Task task, String path, String preferredFormat, boolean forceWrite) {
+		setTarget(target);
+		setTask(task);
+		setPath(path);
+		setPreferredFormat(preferredFormat);
 		setForceWrite(forceWrite);
 	}
 
-	public YouGet(URL target, String root, boolean forceWrite) {
-		this(target, root);
-		setForceWrite(forceWrite);
-	}
-
-	// getter for target
-	public final URL getTarget() {
+	public final Target getTarget() {
 		return target;
 	}
 
-	// getter and setter for root
-	public final String getRoot() {
-		return root;
+	public final void setTarget(Target target) {
+		this.target = target;
+		setUrl(target);
 	}
 
-	public final void setRoot(String root) {
-		this.root = root;
-	}
-
-	// getter and setter for folder
-	public final String getFolder() {
-		return folder;
-	}
-
-	public final void setFolder(String folder) {
-		this.folder = folder;
-	}
-
-	// getter for title
-	public final String getTitle() {
-		return title;
-	}
-
-	// getter and setter for task
 	public final Task getTask() {
 		return task;
 	}
@@ -132,7 +87,34 @@ public class YouGet implements Runnable {
 		this.task = task;
 	}
 
-	// getter and setter for forceWrite
+	public final String getUrl() {
+		return url;
+	}
+
+	private final void setUrl(Target target) {
+		this.url = target.getUrl().toString();
+	}
+
+	public final String getPath() {
+		return path;
+	}
+
+	public final void setPath(String path) {
+		if (path != null) {
+			this.path = path;
+		} else {
+			this.path = "/";
+		}
+	}
+
+	public final String getPreferredFormat() {
+		return preferredFormat;
+	}
+
+	public final void setPreferredFormat(String preferredFormat) {
+		this.preferredFormat = preferredFormat;
+	}
+
 	public final boolean getForceWrite() {
 		return forceWrite;
 	}
@@ -141,23 +123,8 @@ public class YouGet implements Runnable {
 		this.forceWrite = forceWrite;
 	}
 
-	// getter for success
 	public final boolean isSuccess() {
 		return success;
-	}
-
-	// two YouGet processes are considered equal if they have the same URL
-	@Override
-	public boolean equals(Object o) {
-		if (o instanceof YouGet) {
-			return target.toString().equals(((YouGet) o).getTarget().toString());
-		}
-		return false;
-	}
-
-	@Override
-	public int hashCode() {
-		return target.toString().hashCode();
 	}
 
 	/**
@@ -184,7 +151,6 @@ public class YouGet implements Runnable {
 					break;
 				}
 				success = true;
-				task = null;
 				break;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -205,14 +171,12 @@ public class YouGet implements Runnable {
 
 	/**
 	 * It will run the YouGet program to get the info of the target URL if it
-	 * has not been fetched yet and set the info flag to be true. It will update
-	 * the title and target fields using the returned Json data.
+	 * has not been fetched yet. It will update the title of the target using
+	 * the returned Json data.
 	 * 
 	 * It needs a user specified charset to read the output of the YouGet
 	 * program correctly.
 	 * 
-	 * @throws NoExecutableSetException
-	 *             if the executable file location is not set
 	 * @throws ProcessErrorException
 	 *             if YouGet failed to get info of the target
 	 * @throws IOException
@@ -221,30 +185,32 @@ public class YouGet implements Runnable {
 	 * @throws InterruptedException
 	 */
 	private void info() throws ProcessErrorException, IOException, InterruptedException {
-		if (info) {
+		if (target.getTitle() != null) {
 			return;
 		}
-		Process p = new ProcessBuilder(executable, "--json", "\"" + target.toString() + "\"").start();
+		Process p = new ProcessBuilder(executable, "--json", "\"" + url + "\"").start();
+		ProcessReader pr = readProcess(p);
+		p.waitFor();
+		if (p.exitValue() != 0) {
+			throw new ProcessErrorException(pr.getError());
+		} else {
+			JsonObject jsonObject = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
+			target.setTitle(jsonObject.get("title").getAsString());
+		}
+	}
+
+	private void download() {
+		// TODO
+	}
+
+	private ProcessReader readProcess(Process p) throws UnsupportedEncodingException {
 		ProcessReader pr;
 		if (charset == null) {
 			pr = new ProcessReader(p);
 		} else {
 			pr = new ProcessReader(p, charset);
 		}
-		p.waitFor();
-		if (p.exitValue() != 0) {
-			throw new ProcessErrorException(pr.getError());
-		} else {
-			JsonObject jsonObject = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
-			target = new URL(jsonObject.get("url").getAsString());
-			title = jsonObject.get("title").getAsString();
-			info = true;
-		}
-	}
-
-	private void download() throws ProcessErrorException, IOException, InterruptedException {
-		info();
-		// TODO
+		return pr;
 	}
 
 }
