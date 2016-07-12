@@ -16,7 +16,8 @@ public class YouGet implements Runnable {
 	private static String executable;
 	private static String charset; // platform dependent
 	private URL target;
-	private String outputPath;
+	private String root;
+	private String folder;
 	private String title;
 	private Task task;
 	private boolean info;
@@ -59,7 +60,7 @@ public class YouGet implements Runnable {
 
 	// constructor
 	private YouGet() {
-		outputPath = "/";
+		root = "/";
 		info = false;
 		forceWrite = false;
 	}
@@ -74,23 +75,23 @@ public class YouGet implements Runnable {
 		this.target = target;
 	}
 
-	public YouGet(String target, String outputPath) throws IOException {
+	public YouGet(String target, String root) throws IOException {
 		this(target);
-		setOutputPath(outputPath);
+		setRoot(root);
 	}
 
-	public YouGet(URL target, String outputPath) {
+	public YouGet(URL target, String root) {
 		this(target);
-		setOutputPath(outputPath);
+		setRoot(root);
 	}
 
-	public YouGet(String target, String outputPath, boolean forceWrite) throws IOException {
-		this(target, outputPath);
+	public YouGet(String target, String root, boolean forceWrite) throws IOException {
+		this(target, root);
 		setForceWrite(forceWrite);
 	}
 
-	public YouGet(URL target, String outputPath, boolean forceWrite) {
-		this(target, outputPath);
+	public YouGet(URL target, String root, boolean forceWrite) {
+		this(target, root);
 		setForceWrite(forceWrite);
 	}
 
@@ -99,13 +100,22 @@ public class YouGet implements Runnable {
 		return target;
 	}
 
-	// getter and setter for outputPath
-	public final String getOutputPath() {
-		return outputPath;
+	// getter and setter for root
+	public final String getRoot() {
+		return root;
 	}
 
-	public final void setOutputPath(String outputPath) {
-		this.outputPath = outputPath;
+	public final void setRoot(String root) {
+		this.root = root;
+	}
+
+	// getter and setter for folder
+	public final String getFolder() {
+		return folder;
+	}
+
+	public final void setFolder(String folder) {
+		this.folder = folder;
 	}
 
 	// getter for title
@@ -159,6 +169,10 @@ public class YouGet implements Runnable {
 	@Override
 	public void run() {
 		success = false;
+		if (executable == null) {
+			System.err.println("You must call setExecutable(String path) method before run it!");
+			return;
+		}
 		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
 			try {
 				switch (task) {
@@ -172,7 +186,7 @@ public class YouGet implements Runnable {
 				success = true;
 				task = null;
 				break;
-			} catch (NoExecutableSetException | IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 				break;
 			} catch (InterruptedException e) {
@@ -206,12 +220,9 @@ public class YouGet implements Runnable {
 	 *             charset is invalid
 	 * @throws InterruptedException
 	 */
-	private void info() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
+	private void info() throws ProcessErrorException, IOException, InterruptedException {
 		if (info) {
 			return;
-		}
-		if (executable == null) {
-			throw new NoExecutableSetException();
 		}
 		Process p = new ProcessBuilder(executable, "--json", "\"" + target.toString() + "\"").start();
 		ProcessReader pr;
@@ -231,7 +242,7 @@ public class YouGet implements Runnable {
 		}
 	}
 
-	private void download() throws NoExecutableSetException, ProcessErrorException, IOException, InterruptedException {
+	private void download() throws ProcessErrorException, IOException, InterruptedException {
 		info();
 		// TODO
 	}
