@@ -71,10 +71,6 @@ public class Controller {
 	 * @throws IOException
 	 */
 	protected static void deleteTarget() throws IOException {
-		if (targetSet.isEmpty()) {
-			System.out.println("Target list is empty.");
-			return;
-		}
 		Set<String> options = new HashSet<String>();
 		options.add("");
 		for (int i = 1; i <= targetSet.size(); i++) {
@@ -113,7 +109,10 @@ public class Controller {
 			startTask(target, task);
 		}
 		clearThreadPool();
-		reportFailure();
+		if (!failedTargetSet.isEmpty()) {
+			reportFailure();
+		}
+		failedTargetSet.clear();
 	}
 
 	/**
@@ -135,7 +134,7 @@ public class Controller {
 	 * It waits for each thread in the threadPool to finish and then makes the
 	 * threadPool clear.
 	 * 
-	 * It adds all failed processes to failedProcessSet.
+	 * It adds all failed targets to failedTargetSet.
 	 */
 	protected static void clearThreadPool() {
 		for (YouGet yg : threadPool) {
@@ -156,9 +155,6 @@ public class Controller {
 	 * these failed targets from the target list.
 	 */
 	protected static void reportFailure() {
-		if (failedTargetSet.isEmpty()) {
-			return;
-		}
 		for (Target target : failedTargetSet) {
 			System.out.printf("%s has failed.%n", target.getUrl().toString());
 		}
@@ -219,6 +215,9 @@ public class Controller {
 		message += "1. Add target URLs%n";
 		message += "2. Delete target URLs%n";
 		message += "3. Show titles of targets%n";
+		message += "4. Download targets%n";
+		message += "5. Load target list%n";
+		message += "6. Save target list%n";
 		message += "0. Exit%n";
 
 		Map<String, Choice> options = new HashMap<String, Choice>();
@@ -236,10 +235,6 @@ public class Controller {
 	}
 
 	protected static void displayTarget() {
-		if (targetSet.isEmpty()) {
-			System.out.println("Target list is empty.");
-			return;
-		}
 		int id = 0;
 		System.out.println("Targets:");
 		for (Target target : targetSet) {
@@ -248,10 +243,6 @@ public class Controller {
 	}
 
 	protected static void displayTitle() throws IOException {
-		if (targetSet.isEmpty()) {
-			System.out.println("Target list is empty.");
-			return;
-		}
 		startTaskAll(YouGet.Task.INFO);
 		int id = 0;
 		System.out.println("Titles:");
@@ -266,6 +257,14 @@ public class Controller {
 		if (Helper.getUserChoice(message, options) == Choice.YES) {
 			deleteTarget();
 		}
+	}
+	
+	protected static void load() {
+		//TODO
+	}
+	
+	protected static void save() {
+		//TODO
 	}
 
 	protected static void displayExit() {
@@ -284,19 +283,27 @@ public class Controller {
 					addTarget();
 					break;
 				case DELETE:
-					displayTarget();
 					if (!targetSet.isEmpty()) {
+						displayTarget();
 						deleteTarget();
+					} else {
+						System.out.println("Target list is empty.");
 					}
 					break;
 				case TITLE:
-					displayTitle();
+					if (!targetSet.isEmpty()) {
+						displayTitle();
+					} else {
+						System.out.println("Target list is empty.");
+					}
 					break;
 				case DOWNLOAD:
 					break;
 				case LOAD:
+					load();
 					break;
 				case SAVE:
+					save();
 					break;
 				case EXIT:
 					again = false;
