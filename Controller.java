@@ -8,6 +8,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 /**
  * This is the controller for downloading videos from multiple URLs given by the
  * user and putting them into separate folders named after corresponding video
@@ -308,13 +312,22 @@ public class Controller {
 		case OVERWRITE:
 			targetSet.clear();
 		case APPEND:
-			// TODO
+			JsonArray array = Helper.jsonParser.parse(json).getAsJsonArray();
+			for (JsonElement je : array) {
+				JsonObject jo = je.getAsJsonObject();
+				String url = jo.get("url").getAsString();
+				String title = null;
+				if (jo.get("title") != null) {
+					title = jo.get("title").getAsString();
+				}
+				targetSet.add(new Target(url, title));
+			}
 			break;
 		default:
 			return;
 		}
 
-		System.out.println("Target list loaded.");
+		System.out.printf("Target list loaded, %d URLs in target list now.%n", targetSet.size());
 	}
 
 	protected static void save() throws IOException {

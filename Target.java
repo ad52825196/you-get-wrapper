@@ -20,6 +20,11 @@ public class Target {
 		setUrl(url);
 	}
 
+	public Target(String url, String title) throws MalformedURLException {
+		setUrl(url);
+		setTitle(title);
+	}
+
 	public final URL getUrl() {
 		return url;
 	}
