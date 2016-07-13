@@ -73,21 +73,33 @@ public class Controller {
 	protected static void deleteTarget() throws IOException {
 		Set<String> options = new HashSet<String>();
 		options.add("");
+		options.add("all");
 		for (int i = 1; i <= targetSet.size(); i++) {
 			// for user, index starts from 1
 			options.add(Integer.toString(i));
 		}
 		int count = 0;
 		String line;
-		System.out.println("Please enter ids of all target URLs to delete, one line for each:");
+		System.out.println(
+				"Please enter ids of all target URLs to delete, one line for each, enter \"all\" to delete all targets:");
 		Set<Integer> toRemove = new HashSet<Integer>();
+		boolean removeAll = false;
 		while (!(line = Helper.getUserChoice(options)).equals("")) {
+			if (line.equals("all")) {
+				removeAll = true;
+				count = targetSet.size();
+				break;
+			}
 			// for program, index starts from 0
 			if (toRemove.add(Integer.parseInt(line) - 1)) {
 				count++;
 			}
 		}
-		removeTarget(toRemove);
+		if (removeAll) {
+			targetSet.clear();
+		} else {
+			removeTarget(toRemove);
+		}
 		System.out.printf("%d URLs deleted, %d URLs in target list now.%n", count, targetSet.size());
 	}
 
