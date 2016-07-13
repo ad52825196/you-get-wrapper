@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
@@ -97,6 +98,23 @@ public final class Helper {
 			line = input.readLine().toLowerCase();
 		} while (!options.containsKey(line));
 		return options.get(line);
+	}
+
+	public static final String load(String filename) {
+		StringBuilder sb = new StringBuilder();
+		String line;
+
+		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+				sb.append(System.lineSeparator());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		return sb.toString();
 	}
 
 }

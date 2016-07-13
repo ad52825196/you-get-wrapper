@@ -26,6 +26,7 @@ public class Controller {
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
+	private static final String TARGET_LIST_PATH = "target.json";
 	private static Set<YouGet> threadPool = new HashSet<YouGet>();
 	private static Set<Target> targetSet = new LinkedHashSet<Target>();
 	private static Set<Target> failedTargetSet = new HashSet<Target>();
@@ -36,7 +37,7 @@ public class Controller {
 	private static boolean forceWrite;
 
 	protected static enum Choice {
-		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO;
+		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND;
 	}
 
 	/**
@@ -71,6 +72,9 @@ public class Controller {
 	 * @throws IOException
 	 */
 	protected static void deleteTarget() throws IOException {
+		if (targetSet.isEmpty()) {
+			return;
+		}
 		Set<String> options = new HashSet<String>();
 		options.add("");
 		options.add("all");
@@ -256,6 +260,10 @@ public class Controller {
 
 	protected static void displayTitle() throws IOException {
 		startTaskAll(YouGet.Task.INFO);
+		if (targetSet.isEmpty()) {
+			System.out.println("Target list is empty.");
+			return;
+		}
 		int id = 0;
 		System.out.println("Titles:");
 		for (Target target : targetSet) {
@@ -270,13 +278,45 @@ public class Controller {
 			deleteTarget();
 		}
 	}
-	
-	protected static void load() {
-		//TODO
+
+	protected static void load() throws IOException {
+		String json = Helper.load(TARGET_LIST_PATH);
+		if (json == null) {
+			System.out.println("No target list file found.");
+			return;
+		}
+
+		Choice choice;
+		if (targetSet.isEmpty()) {
+			choice = Choice.APPEND;
+		} else {
+			String message = "";
+			message += "Discard all current targets or Append to current target list?%n";
+			message += "1. Discard all current targets%n";
+			message += "2. Append to current target list%n";
+			message += "3. Cancel%n";
+
+			Map<String, Choice> options = new HashMap<String, Choice>();
+			options.put("1", Choice.OVERWRITE);
+			options.put("2", Choice.APPEND);
+			options.put("3", Choice.CANCEL);
+
+			choice = Helper.getUserChoice(message, options);
+		}
+
+		switch (choice) {
+		case OVERWRITE:
+			targetSet.clear();
+		case APPEND:
+			// TODO
+			break;
+		default:
+			break;
+		}
 	}
-	
+
 	protected static void save() {
-		//TODO
+		// TODO
 	}
 
 	protected static void displayExit() {
