@@ -311,12 +311,23 @@ public class Controller {
 			// TODO
 			break;
 		default:
-			break;
+			return;
 		}
+
+		System.out.println("Target list loaded.");
 	}
 
-	protected static void save() {
-		// TODO
+	protected static void save() throws IOException {
+		String message = "";
+		message += "You are going to overwrite the existing target list, continue? (y/n)%n";
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			Helper.save(TARGET_LIST_PATH, Helper.gson.toJson(targetSet));
+			System.out.println("Target list saved.");
+		}
 	}
 
 	protected static void displayExit() {
@@ -355,7 +366,11 @@ public class Controller {
 					load();
 					break;
 				case SAVE:
-					save();
+					if (!targetSet.isEmpty()) {
+						save();
+					} else {
+						System.out.println("Target list is empty.");
+					}
 					break;
 				case EXIT:
 					again = false;

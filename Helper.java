@@ -1,14 +1,19 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 
 /**
@@ -22,6 +27,7 @@ public final class Helper {
 	private static final ExecutableFileFilter executableFileFilter = new ExecutableFileFilter();
 	public static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 	public static final JsonParser jsonParser = new JsonParser();
+	public static final Gson gson = new Gson();
 
 	private static final class ExecutableFileFilter implements FileFilter {
 		private static final String EXECUTABLE_PATTERN = "[\\S]+(\\.(?i)(exe))$";
@@ -115,6 +121,16 @@ public final class Helper {
 		}
 
 		return sb.toString();
+	}
+
+	public static final void save(String filename, String content) {
+		try (Writer writer = new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(filename), "UTF8"))) {
+			writer.write(content);
+			writer.write(System.lineSeparator());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
