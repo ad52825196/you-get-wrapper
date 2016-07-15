@@ -3,7 +3,7 @@ This simple tool can help you download videos from multiple URLs and put them in
 
 By default, it uses You-Get as the downloading tool.
 
-# Features:
+## Features:
 * Add URLs to target list
 * Delete specific URL from target list
 * Delete all URLs from target list
@@ -14,5 +14,8 @@ By default, it uses You-Get as the downloading tool.
 * Download all targets into separate folders named after their titles
 * Allow user to specify the quality level of targets to be downloaded (not available for all sites)
 
-# Usage
-Change the values of constants in the Controller class before you run it.
+## Usage
+Change the values of constants in the Controller class before you run it. You can get YouGet from [here](https://github.com/soimort/you-get).
+
+## License
+This software is distributed under the [MIT license](https://github.com/ad52825196/video-downloader/raw/master/LICENSE).
