@@ -110,18 +110,17 @@ public class Controller {
 	}
 
 	/**
-	 * It fires each process in the provided list in a controlled manner. It
-	 * will call reportFailure() method to show information of failed targets at
-	 * the end.
-	 * 
-	 * Only MAX_NUMBER_OF_THREADS number of threads are allowed to be running at
-	 * the same time.
+	 * It fires each process in the provided list in a controlled manner. Only
+	 * MAX_NUMBER_OF_THREADS number of threads are allowed to be running at the
+	 * same time.
 	 * 
 	 * @param processes
 	 *            a list of prepared processes to be fired and managed by a
 	 *            threading pool
+	 * @param mute
+	 *            if true, no info messages will be displayed to the user
 	 */
-	protected static void startTaskAll(List<YouGet> processes) {
+	protected static void startTaskAll(List<YouGet> processes, boolean mute) {
 		int total = processes.size();
 		int i = 0;
 		for (YouGet yg : processes) {
@@ -130,13 +129,11 @@ public class Controller {
 			}
 			threadPool.add(yg);
 			yg.start();
-			System.out.printf("%d of %d...%n", ++i, total);
+			if (!mute) {
+				System.out.printf("%d of %d...%n", ++i, total);
+			}
 		}
 		clearThreadPool();
-		if (!failedTargetSet.isEmpty()) {
-			reportFailure();
-		}
-		failedTargetSet.clear();
 	}
 
 	/**
@@ -251,12 +248,20 @@ public class Controller {
 		}
 	}
 
-	protected static void displayTitle() throws IOException {
+	protected static void getInfo(boolean mute) {
 		List<YouGet> processes = new ArrayList<YouGet>();
 		for (Target target : targetSet) {
 			processes.add(new YouGet(target, YouGet.Task.INFO));
 		}
-		startTaskAll(processes);
+		startTaskAll(processes, mute);
+	}
+
+	protected static void displayTitle() throws IOException {
+		getInfo(false);
+		if (!failedTargetSet.isEmpty()) {
+			reportFailure();
+		}
+		failedTargetSet.clear();
 		// some failed targets may have been removed from targetSet
 		if (targetSet.isEmpty()) {
 			System.out.println("Target list is empty.");
@@ -278,9 +283,10 @@ public class Controller {
 	}
 
 	protected static void download() throws IOException {
-		String root;
-		String folder;
-		String preferredFormat;
+		String root = "";
+		String folder = "";
+		String path = "";
+		String preferredFormat = "";
 		boolean separateFolder;
 		boolean forceWrite;
 
@@ -320,12 +326,32 @@ public class Controller {
 		} else {
 			forceWrite = false;
 		}
-		
+
+		if (separateFolder) {
+			getInfo(true);
+		}
+
 		List<YouGet> processes = new ArrayList<YouGet>();
 		for (Target target : targetSet) {
-			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD));
+			if (failedTargetSet.contains(target)) {
+				continue;
+			}
+			if (separateFolder) {
+				path = root + target.getTitle();
+			} else {
+				path = root + folder;
+			}
+			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD, path, preferredFormat, forceWrite));
 		}
-		startTaskAll(processes);
+		startTaskAll(processes, false);
+		if (!failedTargetSet.isEmpty()) {
+			reportFailure();
+		}
+		failedTargetSet.clear();
+		// some failed targets may have been removed from targetSet
+		if (!targetSet.isEmpty()) {
+			System.out.println("Downloading finished.");
+		}
 	}
 
 	protected static void load() throws IOException {
