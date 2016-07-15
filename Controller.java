@@ -122,12 +122,15 @@ public class Controller {
 	 *            threading pool
 	 */
 	protected static void startTaskAll(List<YouGet> processes) {
+		int total = processes.size();
+		int i = 0;
 		for (YouGet yg : processes) {
 			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
 			}
 			threadPool.add(yg);
 			yg.start();
+			System.out.printf("%d of %d...%n", ++i, total);
 		}
 		clearThreadPool();
 		if (!failedTargetSet.isEmpty()) {
