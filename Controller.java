@@ -297,7 +297,7 @@ public class Controller {
 		}
 
 		String message = "";
-		message += "Put each target into separate folders or into one single folder?%n";
+		message += "Do you want to put each target into separate folders or into one single folder?%n";
 		message += "1. Separate folders for each target%n";
 		message += "2. All targets into one single folder%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
@@ -337,7 +337,8 @@ public class Controller {
 				continue;
 			}
 			if (separateFolder) {
-				path = root + target.getTitle();
+				// get rid of invalid characters in the path
+				path = root + target.getTitle().replaceAll("[/\\:*?\"<>|]", "");
 			} else {
 				path = root + folder;
 			}
