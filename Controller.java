@@ -32,6 +32,7 @@ public class Controller {
 	private static final String LOCATION = "E:/软件/You-Get/";
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
+	// path to load and save target list
 	private static final String TARGET_LIST_PATH = "target.json";
 	private static Set<YouGet> threadPool = new HashSet<YouGet>();
 	private static Set<Target> targetSet = new LinkedHashSet<Target>();
