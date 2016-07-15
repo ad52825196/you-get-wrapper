@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -33,15 +35,11 @@ public class Controller {
 	private static final String TARGET_LIST_PATH = "target.json";
 	private static Set<YouGet> threadPool = new HashSet<YouGet>();
 	private static Set<Target> targetSet = new LinkedHashSet<Target>();
+	// store failed targets temporarily after running a set of targets each time
 	private static Set<Target> failedTargetSet = new HashSet<Target>();
-	private static String root;
-	private static String folder;
-	private static String preferredFormat;
-	private static boolean separateFolder;
-	private static boolean forceWrite;
 
 	protected static enum Choice {
-		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND;
+		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND, MULTIPLE, SINGLE;
 	}
 
 	/**
@@ -112,42 +110,30 @@ public class Controller {
 	}
 
 	/**
-	 * It starts the task on each target in the targetSet. It will call
-	 * reportFailure() method to show information of failed targets at the end.
+	 * It fires each process in the provided list in a controlled manner. It
+	 * will call reportFailure() method to show information of failed targets at
+	 * the end.
 	 * 
 	 * Only MAX_NUMBER_OF_THREADS number of threads are allowed to be running at
 	 * the same time.
 	 * 
-	 * @param task
-	 *            a task for each process to do
+	 * @param processes
+	 *            a list of prepared processes to be fired and managed by a
+	 *            threading pool
 	 */
-	protected static void startTaskAll(YouGet.Task task) {
-		for (Target target : targetSet) {
+	protected static void startTaskAll(List<YouGet> processes) {
+		for (YouGet yg : processes) {
 			if (threadPool.size() == MAX_NUMBER_OF_THREADS) {
 				clearThreadPool();
 			}
-			startTask(target, task);
+			threadPool.add(yg);
+			yg.start();
 		}
 		clearThreadPool();
 		if (!failedTargetSet.isEmpty()) {
 			reportFailure();
 		}
 		failedTargetSet.clear();
-	}
-
-	/**
-	 * It creates an instance of the downloader to do the specified task on the
-	 * given target.
-	 * 
-	 * @param target
-	 *            the target to deal with
-	 * @param task
-	 *            a task for the process to do
-	 */
-	protected static void startTask(Target target, YouGet.Task task) {
-		YouGet yg = new YouGet(target, task);
-		threadPool.add(yg);
-		yg.start();
 	}
 
 	/**
@@ -263,7 +249,12 @@ public class Controller {
 	}
 
 	protected static void displayTitle() throws IOException {
-		startTaskAll(YouGet.Task.INFO);
+		List<YouGet> processes = new ArrayList<YouGet>();
+		for (Target target : targetSet) {
+			processes.add(new YouGet(target, YouGet.Task.INFO));
+		}
+		startTaskAll(processes);
+		// some failed targets may have been removed from targetSet
 		if (targetSet.isEmpty()) {
 			System.out.println("Target list is empty.");
 			return;
@@ -283,6 +274,57 @@ public class Controller {
 		}
 	}
 
+	protected static void download() throws IOException {
+		String root;
+		String folder;
+		String preferredFormat;
+		boolean separateFolder;
+		boolean forceWrite;
+
+		System.out.println("Please enter the savepath:");
+		root = Helper.input.readLine();
+		if (root.length() == 0 || root.charAt(root.length() - 1) != '/') {
+			root += "/";
+		}
+
+		String message = "";
+		message += "Put each target into separate folders or into one single folder?%n";
+		message += "1. Separate folders for each target%n";
+		message += "2. All targets into one single folder%n";
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("1", Choice.MULTIPLE);
+		options.put("2", Choice.SINGLE);
+		Choice choice = Helper.getUserChoice(message, options);
+		if (choice == Choice.MULTIPLE) {
+			separateFolder = true;
+		} else {
+			separateFolder = false;
+			System.out.println("Please enter the folder name:");
+			folder = Helper.input.readLine();
+		}
+
+		System.out.println("Please enter the preferred quality, hit enter to use the highest quality by default:");
+		preferredFormat = Helper.input.readLine();
+
+		message = "";
+		message += "Do you want to force overwrite any existing file? (y/n)%n";
+		options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		choice = Helper.getUserChoice(message, options);
+		if (choice == Choice.YES) {
+			forceWrite = true;
+		} else {
+			forceWrite = false;
+		}
+		
+		List<YouGet> processes = new ArrayList<YouGet>();
+		for (Target target : targetSet) {
+			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD));
+		}
+		startTaskAll(processes);
+	}
+
 	protected static void load() throws IOException {
 		String json = Helper.load(TARGET_LIST_PATH);
 		if (json == null) {
@@ -299,12 +341,10 @@ public class Controller {
 			message += "1. Discard all current targets%n";
 			message += "2. Append to current target list%n";
 			message += "3. Cancel%n";
-
 			Map<String, Choice> options = new HashMap<String, Choice>();
 			options.put("1", Choice.OVERWRITE);
 			options.put("2", Choice.APPEND);
 			options.put("3", Choice.CANCEL);
-
 			choice = Helper.getUserChoice(message, options);
 		}
 
@@ -374,6 +414,11 @@ public class Controller {
 					}
 					break;
 				case DOWNLOAD:
+					if (!targetSet.isEmpty()) {
+						download();
+					} else {
+						System.out.println("Target list is empty.");
+					}
 					break;
 				case LOAD:
 					load();
