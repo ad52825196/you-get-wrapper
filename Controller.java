@@ -181,14 +181,23 @@ public class Controller {
 	}
 
 	/**
-	 * It removes all failed targets in the failedTargetSet from targetSet and
-	 * makes failedTargetSet clear.
+	 * It removes all failed targets in the failedTargetSet from targetSet.
 	 */
 	private static void removeFailed() {
 		for (Target target : failedTargetSet) {
 			targetSet.remove(target);
 		}
-		failedTargetSet.clear();
+	}
+
+	/**
+	 * It removes all succeeded targets from targetSet.
+	 */
+	private static void removeSucceeded() {
+		for (Target target : targetSet) {
+			if (!failedTargetSet.contains(target)) {
+				targetSet.remove(target);
+			}
+		}
 	}
 
 	/**
@@ -348,14 +357,23 @@ public class Controller {
 			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD, path, preferredFormat, forceWrite));
 		}
 		startTaskAll(processes, false);
+
 		if (!failedTargetSet.isEmpty()) {
 			reportFailure();
 		}
-		failedTargetSet.clear();
 		// some failed targets may have been removed from targetSet
 		if (!targetSet.isEmpty()) {
 			System.out.println("Downloading finished.");
 		}
+		message = "";
+		message += "Do you want to delete all successfully downloaded URLs from the target list? (y/n)%n";
+		options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			removeSucceeded();
+		}
+		failedTargetSet.clear();
 	}
 
 	protected static void load() throws IOException {
