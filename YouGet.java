@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.ArrayList;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -181,7 +183,7 @@ public class YouGet extends Thread {
 	 *             if YouGet failed to get info of the target
 	 * @throws IOException
 	 *             if failed to access or run the program, or if the specified
-	 *             charset is invalid
+	 *             charset for ProcessReader is invalid
 	 * @throws InterruptedException
 	 */
 	private void info() throws ProcessErrorException, IOException, InterruptedException {
@@ -199,8 +201,38 @@ public class YouGet extends Thread {
 		}
 	}
 
-	private void download() {
-		// TODO
+	/**
+	 * It will run the YouGet program to download the target URL.
+	 * 
+	 * It needs a user specified charset to read the output of the YouGet
+	 * program correctly.
+	 * 
+	 * @throws ProcessErrorException
+	 *             if YouGet failed in downloading the target
+	 * @throws IOException
+	 *             if failed to access or run the program, or if the specified
+	 *             charset for ProcessReader is invalid
+	 * @throws InterruptedException
+	 */
+	private void download() throws ProcessErrorException, IOException, InterruptedException {
+		List<String> command = new ArrayList<String>();
+		command.add(executable);
+		command.add("-o");
+		command.add("\"" + path + "\"");
+		if (preferredFormat != null && !preferredFormat.equals("")) {
+			command.add("-F");
+			command.add(preferredFormat);
+		}
+		if (forceWrite) {
+			command.add("-f");
+		}
+		command.add("\"" + url + "\"");
+		Process p = new ProcessBuilder(command).start();
+		ProcessReader pr = readProcess(p);
+		p.waitFor();
+		if (p.exitValue() != 0) {
+			throw new ProcessErrorException(pr.getError());
+		}
 	}
 
 	private ProcessReader readProcess(Process p) throws UnsupportedEncodingException {
