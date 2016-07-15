@@ -13,6 +13,7 @@ By default, it uses You-Get as the downloading tool.
 * Download all targets into a single folder
 * Download all targets into separate folders named after their titles
 * Allow user to specify the quality level of targets to be downloaded (not available for all sites)
+* Multiple targets can be downloaded at the same time
 
 ## Usage
 Change the values of constants in the Controller class before you run it. You can get YouGet from [here](https://github.com/soimort/you-get).
