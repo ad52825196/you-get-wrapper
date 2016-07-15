@@ -34,6 +34,7 @@ public class Controller {
 	private static final String CHARSET = "GBK";
 	// path to load and save target list
 	private static final String TARGET_LIST_PATH = "target.json";
+	private static final String INVALID_DIRECTORY_CHARACTER_PATTERN = "[/\\:*?\"<>|]";
 	private static Set<YouGet> threadPool = new HashSet<YouGet>();
 	private static Set<Target> targetSet = new LinkedHashSet<Target>();
 	// store failed targets temporarily after running a set of targets each time
@@ -328,6 +329,7 @@ public class Controller {
 			forceWrite = false;
 		}
 
+		// get titles of targets for folder names
 		if (separateFolder) {
 			getInfo(true);
 		}
@@ -337,11 +339,11 @@ public class Controller {
 			if (failedTargetSet.contains(target)) {
 				continue;
 			}
+			// get rid of invalid characters in the folder name
 			if (separateFolder) {
-				// get rid of invalid characters in the path
-				path = root + target.getTitle().replaceAll("[/\\:*?\"<>|]", "");
+				path = root + target.getTitle().replaceAll(INVALID_DIRECTORY_CHARACTER_PATTERN, "");
 			} else {
-				path = root + folder;
+				path = root + folder.replaceAll(INVALID_DIRECTORY_CHARACTER_PATTERN, "");
 			}
 			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD, path, preferredFormat, forceWrite));
 		}
