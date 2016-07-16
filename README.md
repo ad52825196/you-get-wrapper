@@ -4,9 +4,8 @@ This simple tool can help you download videos from multiple URLs and put them in
 By default, it uses You-Get as the downloading tool.
 
 ## Features:
-* Add URLs to target list
-* Delete specific URL from target list
-* Delete all URLs from target list
+* No need to change source code after you update YouGet
+* Manage URLs in target list
 * Fetch and show video titles of targets (with cache)
 * Save current target list into a .json file
 * Load target list from a .json file
@@ -15,6 +14,9 @@ By default, it uses You-Get as the downloading tool.
 * Allow user to specify the quality level of targets to be downloaded (not available for all sites)
 * Multiple targets can be downloaded at the same time
 * Report any failed targets to the user
+
+## Dependencies
+[Gson](https://github.com/google/gson) is used to serialize and deserialize Java Objects into JSON and back.
 
 ## Usage
 Change the values of constants in the Controller class before you run it. You can get YouGet from [here](https://github.com/soimort/you-get).
