@@ -338,8 +338,10 @@ public class Controller {
 			forceWrite = false;
 		}
 
-		// get titles of targets for folder names
-		if (separateFolder) {
+		// get titles of targets for folder names and get allowed formats of
+		// each target
+		if (separateFolder || !preferredFormat.equals("")) {
+			System.out.println("Preparing...");
 			getInfo(true);
 		}
 
@@ -354,7 +356,12 @@ public class Controller {
 			} else {
 				path = root + folder.replaceAll(INVALID_DIRECTORY_CHARACTER_PATTERN, "");
 			}
-			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD, path, preferredFormat, forceWrite));
+			// check if preferredFormat is valid
+			String format = null;
+			if (target.getFormats().contains(preferredFormat)) {
+				format = preferredFormat;
+			}
+			processes.add(new YouGet(target, YouGet.Task.DOWNLOAD, path, format, forceWrite));
 		}
 		startTaskAll(processes, false);
 
@@ -399,6 +406,9 @@ public class Controller {
 			choice = Helper.getUserChoice(message, options);
 		}
 
+		Target target;
+		String url;
+		String title = null;
 		switch (choice) {
 		case OVERWRITE:
 			targetSet.clear();
@@ -406,12 +416,18 @@ public class Controller {
 			JsonArray array = Helper.jsonParser.parse(json).getAsJsonArray();
 			for (JsonElement je : array) {
 				JsonObject jo = je.getAsJsonObject();
-				String url = jo.get("url").getAsString();
-				String title = null;
+				url = jo.get("url").getAsString();
 				if (jo.get("title") != null) {
 					title = jo.get("title").getAsString();
 				}
-				targetSet.add(new Target(url, title));
+				target = new Target(url, title);
+				JsonArray ja = jo.getAsJsonArray("formats");
+				if (ja != null) {
+					for (JsonElement format : ja) {
+						target.addFormat(format.getAsString());
+					}
+				}
+				targetSet.add(target);
 			}
 			break;
 		default:

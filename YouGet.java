@@ -1,9 +1,12 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.Map;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -196,8 +199,12 @@ public class YouGet extends Thread {
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
 		} else {
-			JsonObject jsonObject = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
-			target.setTitle(jsonObject.get("title").getAsString());
+			JsonObject jo = Helper.jsonParser.parse(pr.getOutput()).getAsJsonObject();
+			target.setTitle(jo.get("title").getAsString());
+			Set<Map.Entry<String, JsonElement>> formats = jo.getAsJsonObject("streams").entrySet();
+			for (Map.Entry<String, JsonElement> format : formats) {
+				target.addFormat(format.getKey());
+			}
 		}
 	}
 

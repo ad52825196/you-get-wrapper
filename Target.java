@@ -1,5 +1,7 @@
-import java.net.MalformedURLException;
+import java.util.Set;
+import java.util.HashSet;
 import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * Each instance of this class represents a target to download.
@@ -11,6 +13,7 @@ import java.net.URL;
 public class Target {
 	private URL url;
 	private String title;
+	private Set<String> formats = new HashSet<String>();
 
 	public Target(String url) throws MalformedURLException {
 		setUrl(url);
@@ -43,6 +46,14 @@ public class Target {
 
 	public final void setTitle(String title) {
 		this.title = title;
+	}
+
+	public final Set<String> getFormats() {
+		return formats;
+	}
+
+	public final void addFormat(String format) {
+		this.formats.add(format);
 	}
 
 	// two targets are considered equal if they have the same URL
