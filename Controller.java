@@ -193,9 +193,12 @@ public class Controller {
 	 * It removes all succeeded targets from targetSet.
 	 */
 	private static void removeSucceeded() {
-		for (Target target : targetSet) {
+		Target target;
+		Iterator<Target> it = targetSet.iterator();
+		while (it.hasNext()) {
+			target = it.next();
 			if (!failedTargetSet.contains(target)) {
-				targetSet.remove(target);
+				it.remove();
 			}
 		}
 	}
