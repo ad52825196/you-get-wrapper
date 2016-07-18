@@ -341,6 +341,17 @@ public class Controller {
 			forceWrite = false;
 		}
 
+		// confirm
+		message = "";
+		message += "Please check the above settings, do you want to start downloading? (y/n)%n";
+		options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		choice = Helper.getUserChoice(message, options);
+		if (choice == Choice.NO) {
+			return;
+		}
+
 		// get titles of targets for folder names and get allowed formats of
 		// each target
 		if (separateFolder || !preferredFormat.equals("")) {
