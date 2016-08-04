@@ -187,6 +187,7 @@ public class Controller {
 		for (Target target : failedTargetSet) {
 			targetSet.remove(target);
 		}
+		failedTargetSet.clear();
 	}
 
 	/**
@@ -383,16 +384,16 @@ public class Controller {
 			reportFailure();
 		}
 		// some failed targets may have been removed from targetSet
-		if (!targetSet.isEmpty()) {
+		if (!targetSet.isEmpty() && failedTargetSet.size() != targetSet.size()) {
 			System.out.println("Downloading finished.");
-		}
-		message = "";
-		message += "Do you want to delete all successfully downloaded URLs from the target list? (y/n)%n";
-		options = new HashMap<String, Choice>();
-		options.put("y", Choice.YES);
-		options.put("n", Choice.NO);
-		if (Helper.getUserChoice(message, options) == Choice.YES) {
-			removeSucceeded();
+			message = "";
+			message += "Do you want to delete all successfully downloaded URLs from the target list? (y/n)%n";
+			options = new HashMap<String, Choice>();
+			options.put("y", Choice.YES);
+			options.put("n", Choice.NO);
+			if (Helper.getUserChoice(message, options) == Choice.YES) {
+				removeSucceeded();
+			}
 		}
 		failedTargetSet.clear();
 	}
