@@ -39,6 +39,7 @@ public class Controller {
 	private static Set<Target> targetSet = new LinkedHashSet<Target>();
 	// store failed targets temporarily after running a set of targets each time
 	private static Set<Target> failedTargetSet = new HashSet<Target>();
+	public static Object printLock = new Object();
 
 	protected static enum Choice {
 		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND, MULTIPLE, SINGLE;
@@ -163,20 +164,22 @@ public class Controller {
 	 * these failed targets from the target list.
 	 */
 	protected static void reportFailure() {
-		for (Target target : failedTargetSet) {
-			System.out.printf("%s has failed.%n", target.getUrl().toString());
-		}
-		String message = "";
-		message += "Do you want to delete these failed URLs from the target list? (y/n)%n";
-		Map<String, Choice> options = new HashMap<String, Choice>();
-		options.put("y", Choice.YES);
-		options.put("n", Choice.NO);
-		try {
-			if (Helper.getUserChoice(message, options) == Choice.YES) {
-				removeFailed();
+		synchronized (printLock) {
+			for (Target target : failedTargetSet) {
+				System.out.printf("%s has failed.%n", target.getUrl().toString());
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			String message = "";
+			message += "Do you want to delete these failed URLs from the target list? (y/n)%n";
+			Map<String, Choice> options = new HashMap<String, Choice>();
+			options.put("y", Choice.YES);
+			options.put("n", Choice.NO);
+			try {
+				if (Helper.getUserChoice(message, options) == Choice.YES) {
+					removeFailed();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -158,17 +158,23 @@ public class YouGet extends Thread {
 				success = true;
 				break;
 			} catch (IOException e) {
-				e.printStackTrace();
+				synchronized (Controller.printLock) {
+					e.printStackTrace();
+				}
 				break;
 			} catch (InterruptedException e) {
 				if (failedAttempts == MAX_ATTEMPTS - 1) {
 					// only print error message when failed MAX_ATTEMPTS times
-					e.printStackTrace();
+					synchronized (Controller.printLock) {
+						e.printStackTrace();
+					}
 				}
 			} catch (ProcessErrorException e) {
 				if (failedAttempts == MAX_ATTEMPTS - 1) {
 					// only print error message when failed MAX_ATTEMPTS times
-					System.err.println(e.getMessage());
+					synchronized (Controller.printLock) {
+						System.err.println(e.getMessage());
+					}
 				}
 			}
 		}
