@@ -63,7 +63,9 @@ public class Controller {
 				}
 			} catch (MalformedURLException e) {
 				System.err.println("Invalid URL.");
-				e.printStackTrace();
+				synchronized (Controller.printLock) {
+					e.printStackTrace();
+				}
 			}
 		}
 		System.out.printf("%d URLs added, %d URLs in target list now.%n", count, targetSet.size());
@@ -153,7 +155,9 @@ public class Controller {
 					failedTargetSet.add(yg.getTarget());
 				}
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				synchronized (Controller.printLock) {
+					e.printStackTrace();
+				}
 			}
 		}
 		threadPool.clear();
@@ -178,7 +182,9 @@ public class Controller {
 					removeFailed();
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				synchronized (Controller.printLock) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -457,7 +463,7 @@ public class Controller {
 
 	protected static void save() throws IOException {
 		String message = "";
-		message += "You are going to overwrite the existing target list, continue? (y/n)%n";
+		message += "You are going to overwrite the existing target list file, continue? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
 		options.put("n", Choice.NO);

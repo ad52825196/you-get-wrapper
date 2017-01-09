@@ -116,7 +116,6 @@ public final class Helper {
 				sb.append(System.lineSeparator());
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
 			return null;
 		}
 
@@ -124,12 +123,12 @@ public final class Helper {
 	}
 
 	public static final void save(String filename, String content) {
-		try (Writer writer = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(filename), "UTF8"))) {
+		try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF8"))) {
 			writer.write(content);
-			writer.write(System.lineSeparator());
 		} catch (IOException e) {
-			e.printStackTrace();
+			synchronized (Controller.printLock) {
+				e.printStackTrace();
+			}
 		}
 	}
 
