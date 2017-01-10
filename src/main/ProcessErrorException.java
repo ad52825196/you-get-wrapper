@@ -1,3 +1,5 @@
+package main;
+
 public class ProcessErrorException extends Exception {
 	private static final long serialVersionUID = 1L;
 

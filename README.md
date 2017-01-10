@@ -14,6 +14,8 @@ By default, it uses You-Get as the downloading tool.
 * Allow user to specify the quality level of targets to be downloaded (not available for all sites)
 * Multiple targets can be downloaded at the same time
 * Report any failed targets to the user
+* Save downloading settings to a .json file for future reuse
+* Load previous downloading settings
 
 ## Dependencies
 [Gson](https://github.com/google/gson) is used to serialize and deserialize Java Objects into JSON and back.

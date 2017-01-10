@@ -1,3 +1,5 @@
+package main;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
@@ -90,10 +92,12 @@ public final class Helper {
 
 	public static String getUserChoice(String message, Set<String> options) throws IOException {
 		String line;
-		do {
-			System.out.printf(message);
-			line = input.readLine().toLowerCase();
-		} while (!options.contains(line));
+		synchronized (Controller.printLock) {
+			do {
+				System.out.printf(message);
+				line = input.readLine().toLowerCase();
+			} while (!options.contains(line));
+		}
 		return line;
 	}
 
