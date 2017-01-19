@@ -1,27 +1,23 @@
-# Video Downloader
-This simple tool can help you download videos from multiple URLs and put them into separate folders named after corresponding video titles or into a single folder based on your instruction.
-
-By default, it uses You-Get as the downloading tool.
+# You-Get Wrapper
+This simple tool can help you use [You-Get](https://github.com/soimort/you-get) more conveniently. It supports downloading multiple URLs simultaneously and put them into separate folders named after corresponding titles or into a single folder based on your instruction.
 
 ## Features:
-* No need to change source code after you update YouGet
+* No need to change source code after you update You-Get
 * Manage URLs in target list
-* Fetch and show video titles of targets (with cache)
-* Save current target list into a .json file
-* Load target list from a .json file
+* Fetch and show titles of targets (with cache)
+* Manage target list using a .json file
 * Download all targets into a single folder
 * Download all targets into separate folders named after their titles
 * Allow user to specify the quality level of targets to be downloaded (not available for all sites)
 * Multiple targets can be downloaded at the same time
 * Report any failed targets to the user
-* Save downloading settings to a .json file for future reuse
-* Load previous downloading settings
+* Manage downloading settings using a .json file
 
 ## Dependencies
 [Gson](https://github.com/google/gson) is used to serialize and deserialize Java Objects into JSON and back.
 
 ## Usage
-Change the values of constants in the Controller class before you run it. You can get YouGet from [here](https://github.com/soimort/you-get).
+Change the values of constants in the Controller class before you run it. You can get You-Get from [here](https://github.com/soimort/you-get).
 
 ## License
-This software is distributed under the [MIT license](https://github.com/ad52825196/video-downloader/raw/master/LICENSE).
+This software is distributed under the [MIT license](https://github.com/ad52825196/you-get-wrapper/raw/master/LICENSE).
