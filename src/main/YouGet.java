@@ -201,7 +201,11 @@ public class YouGet extends Thread {
 		if (target.getTitle() != null) {
 			return;
 		}
-		Process p = new ProcessBuilder(executable, "--json", "\"" + url + "\"").start();
+		List<String> command = new ArrayList<String>();
+		command.add(executable);
+		command.add("--json");
+		command.add("\"" + url + "\"");
+		Process p = startProcess(command);
 		ProcessReader pr = readProcess(p);
 		p.waitFor();
 		if (p.exitValue() != 0) {
@@ -242,12 +246,19 @@ public class YouGet extends Thread {
 			command.add("-f");
 		}
 		command.add("\"" + url + "\"");
-		Process p = new ProcessBuilder(command).start();
+		Process p = startProcess(command);
 		ProcessReader pr = readProcess(p);
 		p.waitFor();
 		if (p.exitValue() != 0) {
 			throw new ProcessErrorException(pr.getError());
 		}
+	}
+	
+	private Process startProcess(List<String> command) throws IOException {
+		ProcessBuilder pb = new ProcessBuilder(command);
+		Map<String, String> env = pb.environment();
+		env.put("LC_CTYPE", "en_US.UTF-8");
+		return pb.start();
 	}
 
 	private ProcessReader readProcess(Process p) throws UnsupportedEncodingException {
