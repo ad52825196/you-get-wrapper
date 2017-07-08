@@ -47,12 +47,19 @@ public class YouGet extends Thread {
 	 * @param path
 	 *            a path to a directory containing executable programs or a path
 	 *            of an executable program
+	 * @param portable
+	 *            true if the given path is related to an .exe executable file
+	 *            or false if the given path is a command
 	 * @throws FileNotFoundException
 	 *             if the given path does not contain any executable programs
 	 *             and the given path is not a valid executable program either
 	 */
-	public static final void setExecutable(String path) throws FileNotFoundException {
-		executable = Helper.getFirstExecutablePath(path);
+	public static final void setExecutable(String path, boolean portable) throws FileNotFoundException {
+		if (portable) {
+			executable = Helper.getFirstExecutablePath(path);
+		} else {
+			executable = path;
+		}
 	}
 
 	public static final String getCharset() {
@@ -144,7 +151,7 @@ public class YouGet extends Thread {
 	public void run() {
 		success = false;
 		if (executable == null) {
-			System.err.println("You must call setExecutable(String path) method before run it!");
+			System.err.println("You must call setExecutable(String path, boolean portable) method before run it!");
 			return;
 		}
 		for (int failedAttempts = 0; failedAttempts < MAX_ATTEMPTS; failedAttempts++) {
@@ -253,7 +260,7 @@ public class YouGet extends Thread {
 			throw new ProcessErrorException(pr.getError());
 		}
 	}
-	
+
 	private Process startProcess(List<String> command) throws IOException {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		Map<String, String> env = pb.environment();

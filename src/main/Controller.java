@@ -30,14 +30,25 @@ import com.google.gson.JsonObject;
 public class Controller {
 	// at least 1 thread
 	private static final int MAX_NUMBER_OF_THREADS = 1;
+
 	// location of the downloading engine
-	private static final String LOCATION = "E:/软件/You-Get/";
+	// private static final String LOCATION = "E:/软件/You-Get/";
+	private static final String LOCATION = "you-get";
+
+	// whether the LOCATION variable is related to an .exe executable file
+	// only set false if you have installed you-get through a package manager
+	// and the LOCATION variable is a command to run you-get
+	private static final boolean PORTABLE = false;
+
 	// Windows platform uses GBK as charset in Chinese version
 	private static final String CHARSET = "GBK";
+
 	// path to load and save target list
 	private static final String TARGET_LIST_PATH = "target.json";
+
 	// path to load and save settings
 	private static final String SETTING_PATH = "setting.json";
+
 	private static final String INVALID_DIRECTORY_CHARACTER_PATTERN = "[/\\:*?\"<>|]";
 	private static Setting setting = null;
 	private static Set<YouGet> threadPool = new HashSet<YouGet>();
@@ -515,7 +526,7 @@ public class Controller {
 
 	public static void main(String[] args) {
 		try {
-			YouGet.setExecutable(LOCATION);
+			YouGet.setExecutable(LOCATION, PORTABLE);
 			YouGet.setCharset(CHARSET);
 			loadSetting();
 

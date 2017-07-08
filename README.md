@@ -19,5 +19,9 @@ This simple tool can help you use [You-Get](https://github.com/soimort/you-get) 
 ## Usage
 Change the values of constants in the Controller class before you run it. You can get You-Get from [here](https://github.com/soimort/you-get).
 
+If you are using the .exe executable version of You-Get, please set LOCATION variable to be the directory path which contains your .exe file and set `PORTABLE = true`.
+
+If you have installed You-Get through a package manager, please set `LOCATION = "you-get"` and `PORTABLE = false`.
+
 ## License
 This software is distributed under the [MIT license](https://github.com/ad52825196/you-get-wrapper/raw/master/LICENSE).
