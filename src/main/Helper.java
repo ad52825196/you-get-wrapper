@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -130,6 +132,16 @@ public final class Helper {
 		try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF8"))) {
 			writer.write(content);
 		} catch (IOException e) {
+			synchronized (Controller.printLock) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static final void remove(String filename) {
+		try {
+			Files.deleteIfExists(Paths.get(filename));
+		} catch (Exception e) {
 			synchronized (Controller.printLock) {
 				e.printStackTrace();
 			}

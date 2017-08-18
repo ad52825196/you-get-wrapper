@@ -59,7 +59,7 @@ public class Controller {
 	public static Object printLock = new Object();
 
 	protected static enum Choice {
-		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, LOAD_SETTING, SAVE_SETTING, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND, MULTIPLE, SINGLE;
+		ADD, DELETE, TITLE, DOWNLOAD, LOAD, SAVE, LOAD_SETTING, SAVE_SETTING, RESET, RESET_TARGET, RESET_SETTING, RESET_ALL, EXIT, YES, NO, CANCEL, OVERWRITE, APPEND, MULTIPLE, SINGLE;
 	}
 
 	/**
@@ -302,7 +302,8 @@ public class Controller {
 	}
 
 	protected static Choice displayMenu() throws IOException {
-		String message = "";
+		String message;
+		message = "";
 		message += "Menu:%n";
 		message += "1. Add target URLs%n";
 		message += "2. Delete target URLs%n";
@@ -312,6 +313,7 @@ public class Controller {
 		message += "6. Save target list%n";
 		message += "7. Load settings%n";
 		message += "8. Save settings%n";
+		message += "9. Reset%n";
 		message += "0. Exit%n";
 
 		Map<String, Choice> options = new HashMap<String, Choice>();
@@ -323,6 +325,7 @@ public class Controller {
 		options.put("6", Choice.SAVE);
 		options.put("7", Choice.LOAD_SETTING);
 		options.put("8", Choice.SAVE_SETTING);
+		options.put("9", Choice.RESET);
 		options.put("0", Choice.EXIT);
 		options.put("e", Choice.EXIT);
 		options.put("q", Choice.EXIT);
@@ -481,7 +484,8 @@ public class Controller {
 	}
 
 	protected static void save() throws IOException {
-		String message = "";
+		String message;
+		message = "";
 		message += "You are going to overwrite the existing target list file, continue? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
@@ -494,13 +498,14 @@ public class Controller {
 	}
 
 	protected static void loadSetting() throws IOException {
+		String message;
 		String json = Helper.load(SETTING_PATH);
 		if (json == null) {
 			System.out.println("No settings found.");
 			return;
 		}
 
-		String message = "";
+		message = "";
 		message += "Are you sure to discard current settings? (y/n)%n";
 		Map<String, Choice> options = new HashMap<String, Choice>();
 		options.put("y", Choice.YES);
@@ -518,6 +523,75 @@ public class Controller {
 		}
 		Helper.save(SETTING_PATH, Helper.gson.toJson(setting));
 		System.out.println("Settings saved.");
+	}
+
+	protected static void reset() throws IOException {
+		String message;
+		message = "";
+		message += "1. Reset target%n";
+		message += "2. Reset setting%n";
+		message += "3. Reset all%n";
+		message += "4. Cancel%n";
+
+		Map<String, Choice> options = new HashMap<String, Choice>();
+		options.put("1", Choice.RESET_TARGET);
+		options.put("2", Choice.RESET_SETTING);
+		options.put("3", Choice.RESET_ALL);
+		options.put("4", Choice.CANCEL);
+
+		Choice choice;
+		choice = Helper.getUserChoice(message, options);
+		switch (choice) {
+		case RESET_TARGET:
+			resetTarget();
+			break;
+		case RESET_SETTING:
+			resetSetting();
+			break;
+		case RESET_ALL:
+			resetTarget();
+			resetSetting();
+			break;
+		default:
+			return;
+		}
+	}
+
+	protected static void resetTarget() throws IOException {
+		String message;
+		Map<String, Choice> options;
+		message = "";
+		message += "Are you sure to discard all current targets? (y/n)%n";
+		options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			targetSet.clear();
+			failedTargetSet.clear();
+		}
+		message = "";
+		message += "Do you want to remove target list file? (y/n)%n";
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			Helper.remove(TARGET_LIST_PATH);
+		}
+	}
+
+	protected static void resetSetting() throws IOException {
+		String message;
+		Map<String, Choice> options;
+		message = "";
+		message += "Are you sure to discard current settings? (y/n)%n";
+		options = new HashMap<String, Choice>();
+		options.put("y", Choice.YES);
+		options.put("n", Choice.NO);
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			setting = null;
+		}
+		message = "";
+		message += "Do you want to remove setting file? (y/n)%n";
+		if (Helper.getUserChoice(message, options) == Choice.YES) {
+			Helper.remove(SETTING_PATH);
+		}
 	}
 
 	protected static void displayExit() {
@@ -573,6 +647,9 @@ public class Controller {
 					break;
 				case SAVE_SETTING:
 					saveSetting();
+					break;
+				case RESET:
+					reset();
 					break;
 				case EXIT:
 					again = false;
