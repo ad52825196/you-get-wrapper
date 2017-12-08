@@ -40,8 +40,8 @@ public class Controller {
 	// and the LOCATION variable is a command to run you-get
 	private static final boolean PORTABLE = false;
 
-	// Windows platform uses GBK as charset in Chinese version
-	private static final String CHARSET = "GBK";
+	// Windows platform uses UTF8 as charset in Chinese version
+	private static final String CHARSET = "UTF8";
 
 	// path to load and save target list
 	private static final String TARGET_LIST_PATH = "target.json";
