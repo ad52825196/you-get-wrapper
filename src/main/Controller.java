@@ -32,7 +32,7 @@ public class Controller {
 	private static final int MAX_NUMBER_OF_THREADS = 1;
 
 	// location of the downloading engine
-	// private static final String LOCATION = "E:/软件/You-Get/";
+	// private static final String LOCATION = "D:/软件/You-Get/";
 	private static final String LOCATION = "you-get";
 
 	// whether the LOCATION variable is related to an .exe executable file
